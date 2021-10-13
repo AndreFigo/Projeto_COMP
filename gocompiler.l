@@ -1,4 +1,4 @@
-%X COMMENT1LINE COMMENTMULTILINE STRLIT
+%X COMMENT1LINE COMMENTMULTILINE STRLIT STRLITERROR
 letter  [a-zA-Z]
 number  [0-9]
 newline \r\n|\r|\n
@@ -6,6 +6,7 @@ newline \r\n|\r|\n
 %{
     int semicolon=0;
     int yycolno=1;
+    int begcol=0, begline=0;
 %}
 %%
  
@@ -89,10 +90,10 @@ type    {printf("RESERVED(type)\n");semicolon=0;yycolno+=yyleng;}
 
 
  /* REALLIT */
- /*parte inteira seguida de ponto, op parte fraccionaria e/ou expoente*/
+ /*parte inteira seguida de ponto, opcional parte fraccionaria e/ou expoente*/
 {number}+"."(({number}+)|(e|E)("+"|"-")?{number}+|({number}+)(e|E)("+"|"-")?{number}+)?  {printf("REALLIT(%s)\n", yytext);semicolon=1;yycolno+=yyleng;}
 
- /*ponto com parte fraccionaria, op seguida de expoente*/
+ /*ponto com parte fraccionaria, opcional seguida de expoente*/
 "."{number}+((e|E)("+"|"-")?{number}+)?    {printf("REALLIT(%s)\n", yytext);semicolon=1;yycolno+=yyleng;}
 
 
@@ -100,64 +101,49 @@ type    {printf("RESERVED(type)\n");semicolon=0;yycolno+=yyleng;}
 {number}+(e|E)("+"|"-")?{number}+   {printf("REALLIT(%s)\n", yytext);semicolon=1;yycolno+=yyleng;}
 
  /* STRLIT */
+\"     {BEGIN STRLIT; begcol=yycolno;yycolno++;}
+ /*string completa sem erros*/
+<STRLIT>([^\r\n"\\]*|(\\(t|n|r|\\|\"|f)))*\"   {printf("STRLIT(\"%s)\n", yytext); semicolon=1;yycolno+=yyleng; BEGIN 0;}
 
 
-  /*\"([^\r\n\"]*\\\"[^\r\n\"]*)*\"   */     
+ /* Erros */
+<STRLIT>\\{newline}   {BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
+                            printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);
+                            yycolno=1;yylineno++;semicolon=0;}
+<STRLIT>\\(t|n|r|\\|\"|f)   {BEGIN STRLITERROR;yycolno+=yyleng;}
+<STRLIT>\\[^nrft"\\]   {BEGIN STRLITERROR; printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); yycolno+=yyleng;semicolon=0;}
+<STRLIT>{newline}   {BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); yycolno=1;yylineno++;semicolon=0;}
+<STRLIT>.   {BEGIN STRLITERROR;yycolno+=yyleng; }
+<STRLIT><<EOF>> {printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);BEGIN 0;}
 
- /* Invalid escape sequence*/
-\"([^\n\r\"]*\\[^trnf\\\"][^\n\r\"]*)*\"   { for(int i =2; i< yyleng-1;i++){
-                                                if (yytext[i-1]=='\\' && !(yytext[i]=='n' || yytext[i]=='t'|| yytext[i]=='r'|| yytext[i]=='f'|| yytext[i]=='\\'|| yytext[i]=='\"')){
-                                                    printf("Line %d, column %d: invalid escape sequence (%c%c)\n", yylineno, yycolno+i-1, yytext[i-1], yytext[i]);
-                                                }
-                                            };  semicolon=1; 
-                                                yycolno+=yyleng;}
- /* Invalid escape sequence + unterminated string (newline) */
-\"([^\n\r\"]*\\[^trnf\\\"][^\n\r\"]*)*{newline}   { for(int i =2; i< yyleng;i++){
-                                                        if (yytext[i-1]=='\\' && !(yytext[i]=='n' || yytext[i]=='t'|| yytext[i]=='r'|| yytext[i]=='f'|| yytext[i]=='\\'|| yytext[i]=='\"')){
-                                                            printf("Line %d, column %d: invalid escape sequence (%c%c)\n", yylineno, yycolno+i-1, yytext[i-1], yytext[i]);
-                                                        }
-                                                    }; 
-                                                    {printf("Line %d, column %d: unterminated string literal\n",yylineno, yycolno);}
-                                                    semicolon=0;
-                                                    yylineno++;
-                                                    yycolno=1;}
- /* Invalid escape sequence + unterminated string (EOF) */
-\"([^\n\r\"]*\\[^trnf\\\"][^\n\r\"]*)*   { for(int i =2; i< yyleng;i++){
-                                                        if (yytext[i-1]=='\\' && !(yytext[i]=='n' || yytext[i]=='t'|| yytext[i]=='r'|| yytext[i]=='f'|| yytext[i]=='\\'|| yytext[i]=='\"')){
-                                                            printf("Line %d, column %d: invalid escape sequence (%c%c)\n", yylineno, yycolno+i-1, yytext[i-1], yytext[i]);
-                                                        }
-                                                    }; 
-                                                    {printf("Line %d, column %d: unterminated string literal\n",yylineno, yycolno);}
-                                                    semicolon=0;
-                                                    yylineno++;
-                                                    yycolno=1;}
- /* Unterminated string (newline) */
-\"[^\n\r\"]*{newline}   {printf("Line %d, column %d: unterminated string literal\n",yylineno, yycolno);
-                            semicolon=0;
-                            yylineno++;
-                            yycolno=1;}
- /* Unterminated string (EOF) */
-\"[^\n\r\"]*  {printf("Line %d, column %d: unterminated string literal\n",yylineno, yycolno);
-                            semicolon=0;
-                            yylineno++;
-                            yycolno=1;}
- /* STRLIT */                          
-\"[^\n\r\"]*\"  {printf("STRLIT(%s)\n", yytext);}
- 
-({letter}|"_")({letter}|{number}|"_")*   {printf("ID(%s)\n", yytext);semicolon=1;}
+
+<STRLITERROR>\\{newline}   { BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
+                                printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);
+                                yycolno=1;yylineno++;semicolon=0;}
+<STRLITERROR>\\[^nrft"\\]   { printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); yycolno+=yyleng;semicolon=0;}
+<STRLITERROR>{newline}   {BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); yycolno=1;yylineno++;semicolon=0;}
+<STRLITERROR>\\(t|n|r|\\|\"|f)   {;yycolno+=yyleng;}
+<STRLITERROR>\"   {yycolno+=yyleng;BEGIN 0;}
+<STRLITERROR>\\   {printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno); yycolno+=yyleng;}
+<STRLITERROR><<EOF>>   {printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); BEGIN 0;}
+<STRLITERROR>.   {yycolno+=yyleng;}
+
+
+ /* IDs */
+({letter}|"_")({letter}|{number}|"_")*   {printf("ID(%s)\n", yytext);semicolon=1; yycolno+=yyleng;}
 
  /*COMMENTS*/
-"//"    {BEGIN COMMENT1LINE;}
+"//"    {BEGIN COMMENT1LINE;yycolno+=yyleng;}
 
 <COMMENT1LINE>{newline}   {BEGIN 0;yylineno++;yycolno=1;}
-<COMMENT1LINE>.   {;}
+<COMMENT1LINE>.   {yycolno+=yyleng;}
 
 
-"/*"    {BEGIN COMMENTMULTILINE;}
-<COMMENTMULTILINE><<EOF>>   {printf("Line %d, column %d: unterminated comment\n",yylineno, yycolno); BEGIN 0;}
-<COMMENTMULTILINE>"*/"   {BEGIN 0;}
-<COMMENTMULTILINE>{newline}   {;}
-<COMMENTMULTILINE>.   {;}
+"/*"    {BEGIN COMMENTMULTILINE;begcol=yycolno;begline=yylineno;yycolno+=yyleng;}
+<COMMENTMULTILINE><<EOF>>   {printf("Line %d, column %d: unterminated comment\n",begline, begcol); BEGIN 0; }
+<COMMENTMULTILINE>"*/"   {BEGIN 0;yycolno+=yyleng;}
+<COMMENTMULTILINE>{newline}   {yycolno=1;yylineno++;}
+<COMMENTMULTILINE>.   {yycolno+=yyleng;}
 
 
 
@@ -170,7 +156,15 @@ type    {printf("RESERVED(type)\n");semicolon=0;yycolno+=yyleng;}
             yylineno++;
             yycolno=1;
             } 
-.  {yycolno+=yyleng;}
+
+<<EOF>>  {if (semicolon){ printf("SEMICOLON\n");}; yyterminate();} 
+
+\t  {yycolno+=yyleng;}
+" "   {yycolno+=yyleng;}
+
+ /* Caraters ilegais*/
+.  {printf("Line %d, column %d: illegal character (%s)\n",yylineno, yycolno, yytext); yycolno+=yyleng;}
+
 
 %%
 int main()
@@ -181,5 +175,5 @@ return 0;
 
 int yywrap()
 {
-return 1;
+    return 1;
 }
