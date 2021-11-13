@@ -3,13 +3,18 @@
     #include <stdlib.h>
     #include <string.h>
     #include "utils.h"
+    #include "AST.h"
+    #include "structures.h"
     #include "y.tab.h"
 
 
     int yylex(void);
-    void yyerror (const char *s);
+    void yyerror (char *s);
 
     int l_flag = 0, t_flag = 0;
+    int lexical_error = 0, syntax_error = 0;
+
+    ast_node_t *program = NULL; // root
 %}
 
 %union{
@@ -108,6 +113,8 @@ Statement:          ID ASSIGN Expr                                              
             |       PRINT LPAR Expr RPAR                                                        {;}
             |       PRINT LPAR STRLIT RPAR                                                      {;}
 
+            |       error SEMICOLON                                                             {syntax_error = 1;}
+
             ;
   
 StatementSemicolon: StatementSemicolon Statement SEMICOLON                                      {;}
@@ -115,10 +122,12 @@ StatementSemicolon: StatementSemicolon Statement SEMICOLON                      
             ;
             
 ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {;}
+            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;}
             ;
 
 FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {;}
             |       ID LPAR  RPAR                                                               {;}
+            |       ID LPAR  error RPAR                                                         {syntax_error = 1;}
 
             ;
 CommaExpr:          CommaExpr COMMA Expr                                                        {;}
@@ -149,7 +158,8 @@ Expr:               Expr OR  Expr                                               
             |       REALLIT                                                                     {;}
             |       ID                                                                          {;}
             |       FuncInvocation                                                              {;}
-            |       LPAR Expr RPAR
+            |       LPAR Expr RPAR                                                              {;}
+            |       LPAR error RPAR                                                             {syntax_error = 1;}
             ;
 
 %%
@@ -179,7 +189,12 @@ int main(int argc, char *argv[]) {
     if (l_flag){
         yylex();
     }else if(t_flag){
-        yyparse();
+        if (yyparse()){         //error
+            syntax_error=1;
+        }
+        
+        print_program(program);
     }
+
     return 0;
 }

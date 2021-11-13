@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <string.h>
+#include <stdarg.h>
 
 typedef struct Token
 {
