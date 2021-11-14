@@ -15,10 +15,13 @@
     int lexical_error = 0, syntax_error = 0;
 
     ast_node_t *program = NULL; // root
+    ast_node_t *aux_node = NULL;
+    token_t null_token = {.text= NULL, .n_col=-1, .n_line=-1};
 %}
 
 %union{
     token_t token;
+    ast_node_t *ast_node;
 }
 
 %token <token> SEMICOLON COMMA
@@ -33,6 +36,10 @@
 %token <token> PARSEINT PRINT PACKAGE FUNC CMDARGS RESERVED
 %token <token> ID STRLIT INTLIT REALLIT 
 
+%type <ast_node> Program Declarations VarDeclaration VarSpec CommaId Type FuncDeclaration
+%type <ast_node> Parameters CommaIdType FuncBody VarsAndStatements Statement StatementSemicolon
+%type <ast_node> ParseArgs FuncInvocation CommaExpr Expr
+
 %right ASSIGN 
 %left OR
 %left AND
@@ -43,32 +50,32 @@
 
 %%
 
-Program:            PACKAGE ID SEMICOLON Declarations                                           {;}
-            |       PACKAGE ID SEMICOLON                                                        {;}
+Program:            PACKAGE ID SEMICOLON Declarations                                           {$$=program=create_node("Program", null_token);  add_children($$,1,$4);}
+            |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token);}
             
             ;
             
-Declarations:       VarDeclaration SEMICOLON                                                    {;}
-            |       FuncDeclaration SEMICOLON                                                   {;}
-            |       Declarations VarDeclaration SEMICOLON                                       {;}
-            |       Declarations FuncDeclaration SEMICOLON                                      {;}
+Declarations:       VarDeclaration SEMICOLON                                                    {$$=$1;}
+            |       FuncDeclaration SEMICOLON                                                   {$$=$1;}
+            |       Declarations VarDeclaration SEMICOLON                                       {add_siblings($1,1,$2);}
+            |       Declarations FuncDeclaration SEMICOLON                                      {add_siblings($1,1,$2);}
             ;
             
-VarDeclaration:     VAR VarSpec                                                                 {;}
-            |       VAR LPAR VarSpec SEMICOLON RPAR                                             {;}
+VarDeclaration:     VAR VarSpec                                                                 {$$=split_vardecl($2, null_token); }
+            |       VAR LPAR VarSpec SEMICOLON RPAR                                             {$$=split_vardecl($3, null_token);}
             ;
             
-VarSpec:            ID CommaId Type                                                             {;}
+VarSpec:            ID CommaId Type                                                             {$$ = create_node("Id", $1);  add_siblings($3,2, $$, $2); $$=$3;}
             ;
 
-CommaId:            CommaId COMMA ID                                                            {;}
-            |       /*lambda*/                                                                  {;}
+CommaId:            COMMA ID CommaId                                                            {$$= create_node("Id", $2);  add_siblings($$,1,$3);}
+            |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Type:               INT                                                                         {;}
-            |       FLOAT32                                                                     {;}
-            |       BOOL                                                                        {;}
-            |       STRING                                                                      {;}
+Type:               INT                                                                         {$$= create_node("Int", $1); }
+            |       FLOAT32                                                                     {$$= create_node("Float32", $1);}
+            |       BOOL                                                                        {$$= create_node("Bool", $1);}
+            |       STRING                                                                      {$$= create_node("String", $1);}
             ;
   
 FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {;}
@@ -81,7 +88,7 @@ FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                  
 Parameters:         ID Type CommaIdType                                                         {;}
             ;
 
-CommaIdType:        CommaIdType COMMA ID Type                                                   {;}
+CommaIdType:        COMMA ID Type CommaIdType                                                  {;}
             |       /*lambda*/                                                                  {;}
             ;
 
@@ -117,7 +124,7 @@ Statement:          ID ASSIGN Expr                                              
 
             ;
   
-StatementSemicolon: StatementSemicolon Statement SEMICOLON                                      {;}
+StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {;}
             |       /*lambda*/                                                                  {;}
             ;
             
@@ -130,7 +137,7 @@ FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                 
             |       ID LPAR  error RPAR                                                         {syntax_error = 1;}
 
             ;
-CommaExpr:          CommaExpr COMMA Expr                                                        {;}
+CommaExpr:          COMMA Expr  CommaExpr                                                       {;}
             |       /*lambda*/                                                                  {;}
             ;
 

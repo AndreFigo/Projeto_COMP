@@ -8,12 +8,13 @@ typedef struct token
     int n_col;
 } token_t;
 
-typedef struct ast_node
+typedef struct ast_node ast_node_t;
+struct ast_node
 {
     char *type;
     token_t token;        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ast_node_t *fChild;   // first child
     ast_node_t *nSibling; // next sibling
-} ast_node_t;
+};
 
 #endif

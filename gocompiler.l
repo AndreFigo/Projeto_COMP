@@ -15,6 +15,7 @@ newline \r\n|\r|\n
     }
 
     extern int l_flag, t_flag;
+    extern int lexical_error;
 
     int semicolon=0;
     int yycolno=1;

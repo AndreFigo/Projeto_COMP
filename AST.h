@@ -15,10 +15,12 @@ void add_siblings(ast_node_t *first, int n_siblings, ...);
 
 void free_ast(ast_node_t *node);
 
-void print_node(char *type, token_t tok, int depth);
+void print_ast_node(char *type, token_t tok, int depth);
 
 void print_ast(ast_node_t *node, int depth);
 
 void print_program(ast_node_t *program);
+
+ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok);
 
 #endif

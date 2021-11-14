@@ -3,13 +3,7 @@
 
 #include <string.h>
 #include <stdarg.h>
-
-typedef struct Token
-{
-    char *text;
-    int n_line;
-    int n_col;
-} token_t;
+#include "structures.h"
 
 token_t create_token(char *text, int line, int col, int token_type);
 
