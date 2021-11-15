@@ -91,7 +91,8 @@ extern int yydebug;
     ID = 297,
     STRLIT = 298,
     INTLIT = 299,
-    REALLIT = 300
+    REALLIT = 300,
+    UNARY = 301
   };
 #endif
 /* Tokens.  */
@@ -138,16 +139,18 @@ extern int yydebug;
 #define STRLIT 298
 #define INTLIT 299
 #define REALLIT 300
+#define UNARY 301
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 15 "gocompiler.y"
+#line 22 "gocompiler.y"
 
     token_t token;
+    ast_node_t *ast_node;
 
-#line 151 "y.tab.h"
+#line 154 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

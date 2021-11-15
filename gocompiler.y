@@ -15,7 +15,7 @@
     int lexical_error = 0, syntax_error = 0;
 
     ast_node_t *program = NULL; // root
-    ast_node_t *aux_node = NULL;
+    ast_node_t *aux_node = NULL, *aux_node2 = NULL;
     token_t null_token = {.text= NULL, .n_col=-1, .n_line=-1};
 %}
 
@@ -47,10 +47,13 @@
 %left MINUS PLUS 
 %left STAR DIV MOD
 %right NOT
+%nonassoc UNARY
 
 %%
 
-Program:            PACKAGE ID SEMICOLON Declarations                                           {$$=program=create_node("Program", null_token);  add_children($$,1,$4);}
+Program:            PACKAGE ID SEMICOLON Declarations                                           {$$=program=create_node("Program", null_token);
+                                                                                                    add_children($$,1,$4);
+                                                                                                }
             |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token);}
             
             ;
@@ -65,10 +68,14 @@ VarDeclaration:     VAR VarSpec                                                 
             |       VAR LPAR VarSpec SEMICOLON RPAR                                             {$$=split_vardecl($3, null_token);}
             ;
             
-VarSpec:            ID CommaId Type                                                             {$$ = create_node("Id", $1);  add_siblings($3,2, $$, $2); $$=$3;}
+VarSpec:            ID CommaId Type                                                             {$$ = create_node("Id", $1);
+                                                                                                    add_siblings($3,2, $$, $2); $$=$3;
+                                                                                                }
             ;
 
-CommaId:            COMMA ID CommaId                                                            {$$= create_node("Id", $2);  add_siblings($$,1,$3);}
+CommaId:            COMMA ID CommaId                                                            {$$= create_node("Id", $2);
+                                                                                                    add_siblings($$,1,$3);
+                                                                                                }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
@@ -78,95 +85,176 @@ Type:               INT                                                         
             |       STRING                                                                      {$$= create_node("String", $1);}
             ;
   
-FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {;}
-            |       FUNC ID LPAR Parameters RPAR  FuncBody                                      {;}
-            |       FUNC ID LPAR  RPAR Type FuncBody                                            {;}
-            |       FUNC ID LPAR  RPAR  FuncBody                                                {;}
+FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {$$= create_node("FuncDecl", null_token);
+                                                                                                    aux_node= create_node("FuncHeader", null_token); 
+                                                                                                    
+                                                                                                    add_children(aux_node, 3, create_node("Id", $2),$6,$4);
+                                                                                                    add_children($$,2,aux_node, $7); }
+            |       FUNC ID LPAR Parameters RPAR  FuncBody                                      {$$= create_node("FuncDecl", null_token);
+                                                                                                    aux_node= create_node("FuncHeader", null_token); 
+                                                                                                    add_children(aux_node, 2,  create_node("Id", $2),$4);
+                                                                                                    add_children($$,2,aux_node, $6); }
+            ;
+  
+Parameters:         ID Type CommaIdType                                                         {$$=create_node("FuncParams", null_token);
+                                                                                                    aux_node = create_node("ParamDecl", null_token);
+                                                                                                    add_children(aux_node,2,$2, create_node("Id", $1));
+                                                                                                    add_children($$,2, aux_node, $3);}
+            |       /*lambda*/                                                                  {$$=create_node("FuncParams", null_token);}
+            ;
+
+CommaIdType:        COMMA ID Type CommaIdType                                                   {$$ = create_node("ParamDecl", null_token);
+                                                                                                    add_children($$,2, $3, create_node("Id", $2));
+                                                                                                    add_siblings($$, 1, $4);}
+            |       /*lambda*/                                                                  {$$=NULL;}
+            ;
+
+FuncBody:           LBRACE VarsAndStatements RBRACE                                             {$$ = create_node("FuncBody", null_token);
+                                                                                                    add_children($$, 1, $2);
+                                                                                                }
+            ;
+  
+VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                                      {add_siblings($1, 1, $3);$$=$1;}
+            |       VarDeclaration SEMICOLON VarsAndStatements                                  {add_siblings($1, 1, $3); $$=$1;}
+            |       SEMICOLON VarsAndStatements                                                 {$$=$2;/*!!!!!!!!!!!! ATENÇAO AQUI*/}
+            |       /*lambda*/                                                                  {$$=NULL;}
+            ;
+
+Statement:          ID ASSIGN Expr                                                              {$$=create_node("Assign", null_token);
+                                                                                                    add_children($$, 2, create_node("Id",$1), $3);
+                                                                                                }
+
+            |       LBRACE StatementSemicolon RBRACE                                            {   if ($2->nSibling == NULL) $$=$2;
+                                                                                                    else{
+                                                                                                        $$ = create_node("Block", null_token);
+                                                                                                        add_children($$, 1, $2);
+                                                                                                    }
+                                                                                                }
+
+            |       IF Expr LBRACE StatementSemicolon RBRACE ELSE LBRACE StatementSemicolon RBRACE              {$$=create_node("If", null_token);
+                                                                                                                    aux_node = create_node("Block", null_token);
+                                                                                                                    add_children(aux_node, 1, $4);
+                                                                                                                    aux_node2 = create_node("Block", null_token);
+                                                                                                                    add_children(aux_node2, 1, $8);
+                                                                                                                    add_children($$, 3, $2, aux_node, aux_node2);
+                                                                                                                }
+            |       IF Expr LBRACE StatementSemicolon RBRACE                                    {$$=create_node("If", null_token);
+                                                                                                    aux_node = create_node("Block", null_token);
+                                                                                                    add_children(aux_node, 1, $4);
+                                                                                                    aux_node2 = create_node("Block", null_token);
+                                                                                                    add_children($$, 3, $2, aux_node, aux_node2);}
+
+            |       FOR Expr LBRACE StatementSemicolon RBRACE                                   {$$=create_node("For", null_token);
+                                                                                                    aux_node = create_node("Block", null_token);
+                                                                                                    add_children(aux_node, 1, $4);
+                                                                                                    add_children($$, 2, $2, aux_node);
+                                                                                                }
+            |       FOR LBRACE StatementSemicolon RBRACE                                        {$$=create_node("For", null_token);
+                                                                                                    aux_node = create_node("Block", null_token);
+                                                                                                    add_children(aux_node, 1, $3);
+                                                                                                    add_children($$, 1, aux_node);
+                                                                                                }
+
+            |       RETURN Expr                                                                 {$$ = create_node("Return", null_token);
+                                                                                                    add_children($$, 1, $2);
+                                                                                                }
+            |       RETURN                                                                      {$$ =  create_node("Return", null_token);}
+
+            |       FuncInvocation                                                              {$$=$1;}
+            |       ParseArgs                                                                   {$$=$1;}
+
+            |       PRINT LPAR Expr RPAR                                                        {$$ = create_node("Print", null_token);
+                                                                                                    add_children($$, 1, $3);
+                                                                                                }
+            |       PRINT LPAR STRLIT RPAR                                                      {$$ = create_node("Print", null_token);
+                                                                                                    add_children($$, 1, create_node("StrLit", $3));
+                                                                                                }
+
+            |       error SEMICOLON                                                             {syntax_error = 1; $$=create_node("Error",null_token);}
 
             ;
   
-Parameters:         ID Type CommaIdType                                                         {;}
-            ;
-
-CommaIdType:        COMMA ID Type CommaIdType                                                  {;}
-            |       /*lambda*/                                                                  {;}
-            ;
-
-FuncBody:           LBRACE VarsAndStatements RBRACE                                             {;}
-            ;
-  
-VarsAndStatements:  VarsAndStatements  Statement SEMICOLON                                      {;}
-            |       VarsAndStatements VarDeclaration SEMICOLON                                  {;}
-            |       VarsAndStatements  SEMICOLON                                                {;}
-            |       /*lambda*/                                                                  {;}
-            ;
-
-Statement:          ID ASSIGN Expr                                                              {;}
-
-            |       LBRACE StatementSemicolon RBRACE                                            {;}
-
-            |       IF Expr LBRACE StatementSemicolon RBRACE ELSE LBRACE StatementSemicolon RBRACE               {;}
-            |       IF Expr LBRACE StatementSemicolon RBRACE                                    {;}
-
-            |       FOR Expr LBRACE StatementSemicolon RBRACE                                   {;}
-            |       FOR LBRACE StatementSemicolon RBRACE                                        {;}
-
-            |       RETURN Expr                                                                 {;}
-            |       RETURN                                                                      {;}
-
-            |       FuncInvocation                                                              {;}
-            |       ParseArgs                                                                   {;}
-
-            |       PRINT LPAR Expr RPAR                                                        {;}
-            |       PRINT LPAR STRLIT RPAR                                                      {;}
-
-            |       error SEMICOLON                                                             {syntax_error = 1;}
-
-            ;
-  
-StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {;}
-            |       /*lambda*/                                                                  {;}
+StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {add_siblings($1, 1, $3); $$=$1;}
+            |       /*lambda*/                                                                  {$$=NULL;}
             ;
             
-ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {;}
-            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;}
+ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {$$=create_node("ParseArgs", null_token);
+                                                                                                    add_children($$, 2, create_node("Id", $1),$9);
+                                                                                                }
+            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1; $$ = create_node("Error",null_token);}
             ;
 
-FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {;}
-            |       ID LPAR  RPAR                                                               {;}
-            |       ID LPAR  error RPAR                                                         {syntax_error = 1;}
+FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {$$ = create_node("Call", null_token);
+                                                                                                    add_children($$, 3, create_node("Id", $1), $3, $4);
+                                                                                                }
+            |       ID LPAR  RPAR                                                               {$$ = create_node("Call", null_token);
+                                                                                                    add_children($$, 1, create_node("Id", $1));
+                                                                                                }
+            |       ID LPAR  error RPAR                                                         {syntax_error = 1; $$ = create_node("Error",null_token);}
 
             ;
-CommaExpr:          COMMA Expr  CommaExpr                                                       {;}
-            |       /*lambda*/                                                                  {;}
+CommaExpr:          COMMA Expr CommaExpr                                                        {add_siblings($2,1,$3); $$=$2;}
+            |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Expr:               Expr OR  Expr                                                               {;}
-            |       Expr AND Expr                                                               {;}
+Expr:               Expr OR  Expr                                                               {$$ = create_node("Or", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr AND Expr                                                               {$$ = create_node("And", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
             
-            |       Expr LT Expr                                                                {;}
-            |       Expr GT Expr                                                                {;}
-            |       Expr EQ Expr                                                                {;}
-            |       Expr NE Expr                                                                {;}
-            |       Expr LE Expr                                                                {;}
-            |       Expr GE Expr                                                                {;}
+            |       Expr LT Expr                                                                {$$ = create_node("Lt", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr GT Expr                                                                {$$ = create_node("Gt", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr EQ Expr                                                                {$$ = create_node("Eq", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr NE Expr                                                                {$$ = create_node("Ne", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr LE Expr                                                                {$$ = create_node("Le", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr GE Expr                                                                {$$ = create_node("Ge", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
 
-            |       Expr PLUS Expr                                                              {;}
-            |       Expr MINUS Expr                                                             {;}
-            |       Expr STAR Expr                                                              {;}
-            |       Expr DIV Expr                                                               {;}
-            |       Expr MOD Expr                                                               {;}
-    
-            |       NOT Expr                                                                    {;}
-            |       MINUS Expr                                                                  {;}
-            |       PLUS Expr                                                                   {;}
+            |       Expr PLUS Expr                                                              {$$ = create_node("Add", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr MINUS Expr                                                             {$$ = create_node("Sub", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr STAR Expr                                                              {$$ = create_node("Mul", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr DIV Expr                                                               {$$ = create_node("Div", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr MOD Expr                                                               {$$ = create_node("Mod", null_token);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+
+            |       NOT Expr           %prec UNARY                                              {$$ = create_node("Not", null_token);
+                                                                                                    add_children($$, 1, $2);
+                                                                                                }
+            |       MINUS Expr             %prec UNARY                                          {$$ = create_node("Minus", null_token);
+                                                                                                    add_children($$, 1, $2);
+                                                                                                }
+            |       PLUS Expr            %prec UNARY                                            {$$ = create_node("Plus", null_token);
+                                                                                                    add_children($$, 1, $2);
+                                                                                                }
             
-            |       INTLIT                                                                      {;}
-            |       REALLIT                                                                     {;}
-            |       ID                                                                          {;}
-            |       FuncInvocation                                                              {;}
-            |       LPAR Expr RPAR                                                              {;}
-            |       LPAR error RPAR                                                             {syntax_error = 1;}
+            |       INTLIT                                                                      {$$ = create_node("IntLit", $1);}
+            |       REALLIT                                                                     {$$= create_node("RealLit", $1);}
+            |       ID                                                                          {$$ = create_node("Id", $1);}
+            |       FuncInvocation                                                              {$$=$1;}
+            |       LPAR Expr RPAR                                                              {$$=$2;}
+            |       LPAR error RPAR                                                             {syntax_error = 1; $$ = create_node("Error",null_token);}
             ;
 
 %%
