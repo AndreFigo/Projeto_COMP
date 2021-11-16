@@ -125,24 +125,24 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; RETURN_TOK
 
  /* Erros */
 <STRLITERR>\\{newline}             {BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
-                                    printf("Line %d, column %d: unterminated string literal1\n", yylineno, begcol); lexical_error = 1;
+                                    printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1;
                                     yycolno=1;yylineno++;semicolon=0;}
 <STRLITERR>\\(t|n|r|\\|\"|f)       {BEGIN STRLITERROR;yycolno+=yyleng;}
 <STRLITERR>\\[^nrft"\\]            {BEGIN STRLITERROR; printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); lexical_error = 1; yycolno+=yyleng;semicolon=0;}
-<STRLITERR>{newline}               {BEGIN 0; printf("Line %d, column %d: unterminated string literal2\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
+<STRLITERR>{newline}               {BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
 <STRLITERR>.                       {BEGIN STRLITERROR;yycolno+=yyleng; }
-<STRLITERR><<EOF>>                 {printf("Line %d, column %d: unterminated string literal3\n", yylineno, begcol);lexical_error = 1;BEGIN 0;}
+<STRLITERR><<EOF>>                 {printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1;BEGIN 0;}
 
 
 <STRLITERROR>\\{newline}        {BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
-                                    printf("Line %d, column %d: unterminated string literal4\n", yylineno, begcol); lexical_error = 1;
+                                    printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1;
                                     yycolno=1;yylineno++;semicolon=0;}
 <STRLITERROR>\\[^nrft"\\]       {printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); yycolno+=yyleng;semicolon=0; lexical_error = 1;}
-<STRLITERROR>{newline}          {BEGIN 0; printf("Line %d, column %d: unterminated string literal5\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
+<STRLITERROR>{newline}          {BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
 <STRLITERROR>\\(t|n|r|\\|\"|f)  {;yycolno+=yyleng;}
 <STRLITERROR>\"                 {yycolno+=yyleng;BEGIN 0;}
 <STRLITERROR>\\                 {printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno); lexical_error = 1; yycolno+=yyleng;}
-<STRLITERROR><<EOF>>            {printf("Line %d, column %d: unterminated string literal6\n", yylineno, begcol); lexical_error = 1; BEGIN 0;}
+<STRLITERROR><<EOF>>            {printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1; BEGIN 0;}
 <STRLITERROR>.                  {yycolno+=yyleng;}
 
 
