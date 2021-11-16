@@ -26,78 +26,78 @@ newline \r\n|\r|\n
 %%
  
  /* OPERATORS */
-";"     {if (l_flag) printf("SEMICOLON\n"); semicolon=0;RETURN_TOKEN(SEMICOLON); yycolno+=yyleng;}
-","     {if (l_flag) printf("COMMA\n"); semicolon=0; RETURN_TOKEN(COMMA); yycolno+=yyleng;}
-"_"     {if (l_flag) printf("BLANKID\n"); semicolon=0; RETURN_TOKEN(BLANKID); yycolno+=yyleng;}
-"="     {if (l_flag) printf("ASSIGN\n"); semicolon=0; RETURN_TOKEN(ASSIGN); yycolno+=yyleng;}
-"*"     {if (l_flag) printf("STAR\n"); semicolon=0; RETURN_TOKEN(STAR); yycolno+=yyleng;}
-"/"     {if (l_flag) printf("DIV\n"); semicolon=0; RETURN_TOKEN(DIV); yycolno+=yyleng;}
-"-"     {if (l_flag) printf("MINUS\n"); semicolon=0;RETURN_TOKEN(MINUS); yycolno+=yyleng;}
-"+"     {if (l_flag) printf("PLUS\n"); semicolon=0; RETURN_TOKEN(PLUS); yycolno+=yyleng;}
-"=="    {if (l_flag) printf("EQ\n"); semicolon=0; RETURN_TOKEN(EQ); yycolno+=yyleng;}
-">="    {if (l_flag) printf("GE\n"); semicolon=0; RETURN_TOKEN(GE); yycolno+=yyleng;}
-">"     {if (l_flag) printf("GT\n"); semicolon=0; RETURN_TOKEN(GT); yycolno+=yyleng;}
-"{"     {if (l_flag) printf("LBRACE\n"); semicolon=0; RETURN_TOKEN(LBRACE); yycolno+=yyleng;}
-"<="    {if (l_flag) printf("LE\n"); semicolon=0; RETURN_TOKEN(LE); yycolno+=yyleng;}
-"("     {if (l_flag) printf("LPAR\n"); semicolon=0; RETURN_TOKEN(LPAR); yycolno+=yyleng;}
-"["     {if (l_flag) printf("LSQ\n"); semicolon=0; RETURN_TOKEN(LSQ); yycolno+=yyleng;}
-"<"     {if (l_flag) printf("LT\n"); semicolon=0; RETURN_TOKEN(LT); yycolno+=yyleng;}
-"%"     {if (l_flag) printf("MOD\n"); semicolon=0; RETURN_TOKEN(MOD); yycolno+=yyleng; }
-"!="    {if (l_flag) printf("NE\n"); semicolon=0; RETURN_TOKEN(NE); yycolno+=yyleng;}
-"!"     {if (l_flag) printf("NOT\n"); semicolon=0; RETURN_TOKEN(NOT); yycolno+=yyleng;}
-"&&"    {if (l_flag) printf("AND\n"); semicolon=0; RETURN_TOKEN(AND); yycolno+=yyleng;}
-"||"    {if (l_flag) printf("OR\n"); semicolon=0; RETURN_TOKEN(OR); yycolno+=yyleng;}
-"}"     {if (l_flag) printf("RBRACE\n"); semicolon=1; RETURN_TOKEN(RBRACE); yycolno+=yyleng;}
-")"     {if (l_flag) printf("RPAR\n"); semicolon=1; RETURN_TOKEN(RPAR); yycolno+=yyleng;}
-"]"     {if (l_flag) printf("RSQ\n"); semicolon=1; RETURN_TOKEN(RSQ); yycolno+=yyleng;}
+";"     {if (l_flag) printf("SEMICOLON\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(SEMICOLON);}
+","     {if (l_flag) printf("COMMA\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(COMMA);}
+"_"     {if (l_flag) printf("BLANKID\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(BLANKID);}
+"="     {if (l_flag) printf("ASSIGN\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(ASSIGN);}
+"*"     {if (l_flag) printf("STAR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(STAR);}
+"/"     {if (l_flag) printf("DIV\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(DIV);}
+"-"     {if (l_flag) printf("MINUS\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(MINUS);}
+"+"     {if (l_flag) printf("PLUS\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(PLUS);}
+"=="    {if (l_flag) printf("EQ\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(EQ);}
+">="    {if (l_flag) printf("GE\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(GE);}
+">"     {if (l_flag) printf("GT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(GT);}
+"{"     {if (l_flag) printf("LBRACE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LBRACE);}
+"<="    {if (l_flag) printf("LE\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(LE); }
+"("     {if (l_flag) printf("LPAR\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LPAR);}
+"["     {if (l_flag) printf("LSQ\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LSQ);}
+"<"     {if (l_flag) printf("LT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LT);}
+"%"     {if (l_flag) printf("MOD\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(MOD);}
+"!="    {if (l_flag) printf("NE\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(NE);}
+"!"     {if (l_flag) printf("NOT\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(NOT);}
+"&&"    {if (l_flag) printf("AND\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(AND);}
+"||"    {if (l_flag) printf("OR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(OR);}
+"}"     {if (l_flag) printf("RBRACE\n"); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(RBRACE);}
+")"     {if (l_flag) printf("RPAR\n"); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(RPAR); }
+"]"     {if (l_flag) printf("RSQ\n"); semicolon=1;  yycolno+=yyleng; RETURN_TOKEN(RSQ);}
 
  /* KEYWORDS */
-package         {if (l_flag) printf("PACKAGE\n"); semicolon=0; RETURN_TOKEN(PACKAGE); yycolno+=yyleng;}
-return          {if (l_flag) printf("RETURN\n"); semicolon=1; RETURN_TOKEN(RETURN); yycolno+=yyleng;}
-else            {if (l_flag) printf("ELSE\n"); semicolon=0; RETURN_TOKEN(ELSE); yycolno+=yyleng;}
-for             {if (l_flag) printf("FOR\n"); semicolon=0; RETURN_TOKEN(FOR); yycolno+=yyleng;}
-if              {if (l_flag) printf("IF\n"); semicolon=0; RETURN_TOKEN(IF); yycolno+=yyleng;}
-var             {if (l_flag) printf("VAR\n"); semicolon=0; RETURN_TOKEN(VAR); yycolno+=yyleng;}
-int             {if (l_flag) printf("INT\n"); semicolon=0; RETURN_TOKEN(INT); yycolno+=yyleng;}
-float32         {if (l_flag) printf("FLOAT32\n"); semicolon=0; RETURN_TOKEN(FLOAT32); yycolno+=yyleng;}
-bool            {if (l_flag) printf("BOOL\n"); semicolon=0; RETURN_TOKEN(BOOL); yycolno+=yyleng;}
-string          {if (l_flag) printf("STRING\n"); semicolon=0; RETURN_TOKEN(STRING); yycolno+=yyleng;}
-fmt.Println     {if (l_flag) printf("PRINT\n"); semicolon=0; RETURN_TOKEN(PRINT); yycolno+=yyleng; }
-strconv.Atoi    {if (l_flag) printf("PARSEINT\n"); semicolon=0; RETURN_TOKEN(PARSEINT); yycolno+=yyleng;}
-func            {if (l_flag) printf("FUNC\n"); semicolon=0; RETURN_TOKEN(FUNC); yycolno+=yyleng;}
-os.Args         {if (l_flag) printf("CMDARGS\n"); semicolon=0; RETURN_TOKEN(CMDARGS); yycolno+=yyleng;}
+package         {if (l_flag) printf("PACKAGE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PACKAGE);}
+return          {if (l_flag) printf("RETURN\n"); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(RETURN);}
+else            {if (l_flag) printf("ELSE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(ELSE);}
+for             {if (l_flag) printf("FOR\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FOR);}
+if              {if (l_flag) printf("IF\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(IF);}
+var             {if (l_flag) printf("VAR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(VAR);}
+int             {if (l_flag) printf("INT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(INT);}
+float32         {if (l_flag) printf("FLOAT32\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FLOAT32);}
+bool            {if (l_flag) printf("BOOL\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(BOOL);}
+string          {if (l_flag) printf("STRING\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(STRING);}
+fmt.Println     {if (l_flag) printf("PRINT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PRINT);}
+strconv.Atoi    {if (l_flag) printf("PARSEINT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PARSEINT);}
+func            {if (l_flag) printf("FUNC\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FUNC);}
+os.Args         {if (l_flag) printf("CMDARGS\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(CMDARGS);}
 
  /* RESERVED */
-"++"            {if (l_flag) printf("RESERVED(++)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-"--"            {if (l_flag) printf("RESERVED(--)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-break           {if (l_flag) printf("RESERVED(break)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-case            {if (l_flag) printf("RESERVED(case)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-chan            {if (l_flag) printf("RESERVED(chan)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-const           {if (l_flag) printf("RESERVED(const)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-continue        {if (l_flag) printf("RESERVED(continue)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-default         {if (l_flag) printf("RESERVED(default)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-defer           {if (l_flag) printf("RESERVED(defer)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-fallthrough     {if (l_flag) printf("RESERVED(fallthrough)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-go              {if (l_flag) printf("RESERVED(go)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-goto            {if (l_flag) printf("RESERVED(goto)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-import          {if (l_flag) printf("RESERVED(import)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-interface       {if (l_flag) printf("RESERVED(interface)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-map             {if (l_flag) printf("RESERVED(map)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-range           {if (l_flag) printf("RESERVED(range)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-select          {if (l_flag) printf("RESERVED(select)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-struct          {if (l_flag) printf("RESERVED(struct)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-switch          {if (l_flag) printf("RESERVED(switch)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
-type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+"++"            {if (l_flag) printf("RESERVED(++)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+"--"            {if (l_flag) printf("RESERVED(--)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+break           {if (l_flag) printf("RESERVED(break)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+case            {if (l_flag) printf("RESERVED(case)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+chan            {if (l_flag) printf("RESERVED(chan)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+const           {if (l_flag) printf("RESERVED(const)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+continue        {if (l_flag) printf("RESERVED(continue)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+default         {if (l_flag) printf("RESERVED(default)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+defer           {if (l_flag) printf("RESERVED(defer)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+fallthrough     {if (l_flag) printf("RESERVED(fallthrough)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+go              {if (l_flag) printf("RESERVED(go)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+goto            {if (l_flag) printf("RESERVED(goto)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+import          {if (l_flag) printf("RESERVED(import)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+interface       {if (l_flag) printf("RESERVED(interface)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+map             {if (l_flag) printf("RESERVED(map)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+range           {if (l_flag) printf("RESERVED(range)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+select          {if (l_flag) printf("RESERVED(select)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+struct          {if (l_flag) printf("RESERVED(struct)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+switch          {if (l_flag) printf("RESERVED(switch)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
+type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 
 
  /* INTLIT */
-[1-9]{number}*              {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+[1-9]{number}*              {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 
-0                           {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+0                           {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 
-(0x|0X)[0-9a-fA-F]+         {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+(0x|0X)[0-9a-fA-F]+         {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 
-0[0-7]+                     {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+0[0-7]+                     {if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 
 0{number}+                  {printf("Line %d, column %d: invalid octal constant (%s)\n",yylineno, yycolno, yytext);lexical_error = 1; semicolon=0; yycolno+=yyleng;}
 
@@ -106,13 +106,13 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; RETURN_TOK
 
  /* REALLIT */
  /*parte inteira seguida de ponto, opcional parte fraccionaria e/ou expoente*/
-{number}+"."(({number}+)|(e|E)("+"|"-")?{number}+|({number}+)(e|E)("+"|"-")?{number}+)?     {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(REALLIT); yycolno+=yyleng;  }
+{number}+"."(({number}+)|(e|E)("+"|"-")?{number}+|({number}+)(e|E)("+"|"-")?{number}+)?     {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(REALLIT);   }
 
  /*ponto com parte fraccionaria, opcional seguida de expoente*/
-"."{number}+((e|E)("+"|"-")?{number}+)?                                                     {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(REALLIT); yycolno+=yyleng; }
+"."{number}+((e|E)("+"|"-")?{number}+)?                                                     {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(REALLIT);  }
 
  /*parte inteira seguida de expoente*/
-{number}+(e|E)("+"|"-")?{number}+                                                           {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1;  RETURN_TOKEN(REALLIT); yycolno+=yyleng;}
+{number}+(e|E)("+"|"-")?{number}+                                                           {if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(REALLIT); }
 
  /* STRLIT */
 
@@ -147,7 +147,7 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; RETURN_TOK
 
 
  /* IDs */
-({letter}|"_")({letter}|{number}|"_")*      {if (l_flag) printf("ID(%s)\n", yytext);semicolon=1; RETURN_TOKEN(ID); yycolno+=yyleng;  }
+({letter}|"_")({letter}|{number}|"_")*      {if (l_flag) printf("ID(%s)\n", yytext);semicolon=1; yycolno+=yyleng;RETURN_TOKEN(ID);   }
 
  /*COMMENTS*/
 "//"    {BEGIN COMMENT1LINE;yycolno+=yyleng;}
@@ -192,5 +192,5 @@ int yywrap()
 }
 
 void yyerror ( char *s) {
-    printf (" Line  %d,  column  %d: %s: %s\n", yylineno, yycolno, s, yytext );
+    printf ("Line  %d,  column  %d: %s: %s\n", yylineno, yycolno, s, yytext );
 }
