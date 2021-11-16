@@ -1,0 +1,6 @@
+class test {
+    public static void method_with_a_very_long_name_to_verify_if_memory_allocation_is_correctly_handled(){}
+public static void a(){
+   a(a());
+}
+}

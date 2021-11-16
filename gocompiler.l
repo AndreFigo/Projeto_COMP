@@ -10,10 +10,12 @@ newline \r\n|\r|\n
 
     #define RETURN_TOKEN(...)  \
     if (l_flag==0) { \
-        yylval.token = create_token(yytext, yylineno,yycolno, __VA_ARGS__); \
+        yylval.token = create_token(yytext, yylineno, yycolno - yyleng , __VA_ARGS__); \
         return __VA_ARGS__; \
     }
 
+        //printf("yytext %s, line %d, col %d, type %d\n", yytext, yylineno, yycolno, __VA_ARGS__);\
+    
     extern int l_flag, t_flag;
     extern int lexical_error;
 
@@ -117,7 +119,7 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
  /* STRLIT */
 
  /*string completa sem erros*/
-\"([^\r\n"\\]*|(\\(t|n|r|\\|\"|f)))*\"            {if (l_flag) printf("STRLIT(\"%s)\n", yytext); semicolon=1;  RETURN_TOKEN(STRLIT); yycolno+=yyleng; BEGIN 0; }
+\"([^\r\n"\\]*|(\\(t|n|r|\\|\"|f)))*\"            {if (l_flag) printf("STRLIT(\"%s)\n", yytext); semicolon=1; yycolno+=yyleng; BEGIN 0; RETURN_TOKEN(STRLIT);   }
 
  /*string completa sem erros*/
 \"                                                      {BEGIN STRLITERR; begcol=yycolno;yycolno++;}
@@ -169,13 +171,26 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
             if (semicolon){
                 if (l_flag) printf("SEMICOLON\n");
                 semicolon=0;
-                RETURN_TOKEN(SEMICOLON);
+
+                yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); \
+                yycolno=1;
+                yylineno++;
+                return SEMICOLON;
+                
             };
             yylineno++;
             yycolno=1;
             } 
 
-<<EOF>>  {if (semicolon){ if (l_flag) printf("SEMICOLON\n"); RETURN_TOKEN(SEMICOLON);}; yyterminate();} 
+<<EOF>>  {if (semicolon){ 
+            if (l_flag) 
+                printf("SEMICOLON\n"); 
+            yycolno++; 
+            RETURN_TOKEN(SEMICOLON);
+            }
+            yycolno+=yyleng;
+            RETURN_TOKEN(0);
+            yyterminate();} 
 
 \t  {yycolno+=yyleng;}
 " "   {yycolno+=yyleng;}
@@ -192,5 +207,5 @@ int yywrap()
 }
 
 void yyerror ( char *s) {
-    printf ("Line  %d,  column  %d: %s: %s\n", yylineno, yycolno, s, yytext );
+    printf ("Line %d, column %d: %s: %s\n", yylineno, yycolno-yyleng, s, yytext );
 }

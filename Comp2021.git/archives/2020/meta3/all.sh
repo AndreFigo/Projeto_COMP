@@ -1,0 +1,19 @@
+#!/bin/bash
+./run.sh AindaSemErros
+./run.sh MethodInvocation
+./run.sh algunsErros
+./run.sh CallError
+./run.sh MultipleArguments
+./run.sh declarationErrors
+./run.sh Call_me_maybe
+./run.sh Operators
+./run.sh divide
+./run.sh DoublePrecisionErros
+./run.sh Operators2
+./run.sh methodsAndFields
+./run.sh Factorial
+./run.sh Operators3
+./run.sh operator_single
+./run.sh FieldDecErrors
+./run.sh Problema_H
+./run.sh testeProblemaE

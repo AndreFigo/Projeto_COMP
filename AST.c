@@ -164,6 +164,7 @@ void print_ast(ast_node_t *node, int depth)
 
 void print_program(ast_node_t *program)
 {
+    //if (  program != NULL)
     if (syntax_error == 0 && lexical_error == 0 && program != NULL)
         print_ast(program, 0);
 }

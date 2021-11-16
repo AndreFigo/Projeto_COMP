@@ -692,10 +692,12 @@ char *yytext;
 
     #define RETURN_TOKEN(...)  \
     if (l_flag==0) { \
-        yylval.token = create_token(yytext, yylineno,yycolno, __VA_ARGS__); \
+        yylval.token = create_token(yytext, yylineno, yycolno - yyleng , __VA_ARGS__); \
         return __VA_ARGS__; \
     }
 
+        //printf("yytext %s, line %d, col %d, type %d\n", yytext, yylineno, yycolno, __VA_ARGS__);\
+    
     extern int l_flag, t_flag;
     extern int lexical_error;
 
@@ -704,8 +706,8 @@ char *yytext;
     int begcol=0, begline=0;
 
     
-#line 708 "lex.yy.c"
-#line 709 "lex.yy.c"
+#line 710 "lex.yy.c"
+#line 711 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT1LINE 1
@@ -926,12 +928,12 @@ YY_DECL
 		}
 
 	{
-#line 26 "gocompiler.l"
-
 #line 28 "gocompiler.l"
+
+#line 30 "gocompiler.l"
  
  /* OPERATORS */
-#line 935 "lex.yy.c"
+#line 937 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -990,490 +992,495 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 30 "gocompiler.l"
-{if (l_flag) printf("SEMICOLON\n"); semicolon=0;RETURN_TOKEN(SEMICOLON); yycolno+=yyleng;}
+#line 32 "gocompiler.l"
+{if (l_flag) printf("SEMICOLON\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(SEMICOLON);}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 31 "gocompiler.l"
-{if (l_flag) printf("COMMA\n"); semicolon=0; RETURN_TOKEN(COMMA); yycolno+=yyleng;}
+#line 33 "gocompiler.l"
+{if (l_flag) printf("COMMA\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(COMMA);}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 32 "gocompiler.l"
-{if (l_flag) printf("BLANKID\n"); semicolon=0; RETURN_TOKEN(BLANKID); yycolno+=yyleng;}
+#line 34 "gocompiler.l"
+{if (l_flag) printf("BLANKID\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(BLANKID);}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 33 "gocompiler.l"
-{if (l_flag) printf("ASSIGN\n"); semicolon=0; RETURN_TOKEN(ASSIGN); yycolno+=yyleng;}
+#line 35 "gocompiler.l"
+{if (l_flag) printf("ASSIGN\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(ASSIGN);}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 34 "gocompiler.l"
-{if (l_flag) printf("STAR\n"); semicolon=0; RETURN_TOKEN(STAR); yycolno+=yyleng;}
+#line 36 "gocompiler.l"
+{if (l_flag) printf("STAR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(STAR);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 35 "gocompiler.l"
-{if (l_flag) printf("DIV\n"); semicolon=0; RETURN_TOKEN(DIV); yycolno+=yyleng;}
+#line 37 "gocompiler.l"
+{if (l_flag) printf("DIV\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(DIV);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 36 "gocompiler.l"
-{if (l_flag) printf("MINUS\n"); semicolon=0;RETURN_TOKEN(MINUS); yycolno+=yyleng;}
+#line 38 "gocompiler.l"
+{if (l_flag) printf("MINUS\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(MINUS);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 37 "gocompiler.l"
-{if (l_flag) printf("PLUS\n"); semicolon=0; RETURN_TOKEN(PLUS); yycolno+=yyleng;}
+#line 39 "gocompiler.l"
+{if (l_flag) printf("PLUS\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(PLUS);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 38 "gocompiler.l"
-{if (l_flag) printf("EQ\n"); semicolon=0; RETURN_TOKEN(EQ); yycolno+=yyleng;}
+#line 40 "gocompiler.l"
+{if (l_flag) printf("EQ\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(EQ);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 39 "gocompiler.l"
-{if (l_flag) printf("GE\n"); semicolon=0; RETURN_TOKEN(GE); yycolno+=yyleng;}
+#line 41 "gocompiler.l"
+{if (l_flag) printf("GE\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(GE);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 40 "gocompiler.l"
-{if (l_flag) printf("GT\n"); semicolon=0; RETURN_TOKEN(GT); yycolno+=yyleng;}
+#line 42 "gocompiler.l"
+{if (l_flag) printf("GT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(GT);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 41 "gocompiler.l"
-{if (l_flag) printf("LBRACE\n"); semicolon=0; RETURN_TOKEN(LBRACE); yycolno+=yyleng;}
+#line 43 "gocompiler.l"
+{if (l_flag) printf("LBRACE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LBRACE);}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 42 "gocompiler.l"
-{if (l_flag) printf("LE\n"); semicolon=0; RETURN_TOKEN(LE); yycolno+=yyleng;}
+#line 44 "gocompiler.l"
+{if (l_flag) printf("LE\n"); semicolon=0; yycolno+=yyleng;RETURN_TOKEN(LE); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 43 "gocompiler.l"
-{if (l_flag) printf("LPAR\n"); semicolon=0; RETURN_TOKEN(LPAR); yycolno+=yyleng;}
+#line 45 "gocompiler.l"
+{if (l_flag) printf("LPAR\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LPAR);}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 44 "gocompiler.l"
-{if (l_flag) printf("LSQ\n"); semicolon=0; RETURN_TOKEN(LSQ); yycolno+=yyleng;}
+#line 46 "gocompiler.l"
+{if (l_flag) printf("LSQ\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LSQ);}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 45 "gocompiler.l"
-{if (l_flag) printf("LT\n"); semicolon=0; RETURN_TOKEN(LT); yycolno+=yyleng;}
+#line 47 "gocompiler.l"
+{if (l_flag) printf("LT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(LT);}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 46 "gocompiler.l"
-{if (l_flag) printf("MOD\n"); semicolon=0; RETURN_TOKEN(MOD); yycolno+=yyleng; }
+#line 48 "gocompiler.l"
+{if (l_flag) printf("MOD\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(MOD);}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 47 "gocompiler.l"
-{if (l_flag) printf("NE\n"); semicolon=0; RETURN_TOKEN(NE); yycolno+=yyleng;}
+#line 49 "gocompiler.l"
+{if (l_flag) printf("NE\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(NE);}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 48 "gocompiler.l"
-{if (l_flag) printf("NOT\n"); semicolon=0; RETURN_TOKEN(NOT); yycolno+=yyleng;}
+#line 50 "gocompiler.l"
+{if (l_flag) printf("NOT\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(NOT);}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 49 "gocompiler.l"
-{if (l_flag) printf("AND\n"); semicolon=0; RETURN_TOKEN(AND); yycolno+=yyleng;}
+#line 51 "gocompiler.l"
+{if (l_flag) printf("AND\n"); semicolon=0;  yycolno+=yyleng; RETURN_TOKEN(AND);}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 50 "gocompiler.l"
-{if (l_flag) printf("OR\n"); semicolon=0; RETURN_TOKEN(OR); yycolno+=yyleng;}
+#line 52 "gocompiler.l"
+{if (l_flag) printf("OR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(OR);}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 51 "gocompiler.l"
-{if (l_flag) printf("RBRACE\n"); semicolon=1; RETURN_TOKEN(RBRACE); yycolno+=yyleng;}
+#line 53 "gocompiler.l"
+{if (l_flag) printf("RBRACE\n"); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(RBRACE);}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 52 "gocompiler.l"
-{if (l_flag) printf("RPAR\n"); semicolon=1; RETURN_TOKEN(RPAR); yycolno+=yyleng;}
+#line 54 "gocompiler.l"
+{if (l_flag) printf("RPAR\n"); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(RPAR); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 53 "gocompiler.l"
-{if (l_flag) printf("RSQ\n"); semicolon=1; RETURN_TOKEN(RSQ); yycolno+=yyleng;}
+#line 55 "gocompiler.l"
+{if (l_flag) printf("RSQ\n"); semicolon=1;  yycolno+=yyleng; RETURN_TOKEN(RSQ);}
 	YY_BREAK
 /* KEYWORDS */
 case 25:
 YY_RULE_SETUP
-#line 56 "gocompiler.l"
-{if (l_flag) printf("PACKAGE\n"); semicolon=0; RETURN_TOKEN(PACKAGE); yycolno+=yyleng;}
+#line 58 "gocompiler.l"
+{if (l_flag) printf("PACKAGE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PACKAGE);}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 57 "gocompiler.l"
-{if (l_flag) printf("RETURN\n"); semicolon=1; RETURN_TOKEN(RETURN); yycolno+=yyleng;}
+#line 59 "gocompiler.l"
+{if (l_flag) printf("RETURN\n"); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(RETURN);}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 58 "gocompiler.l"
-{if (l_flag) printf("ELSE\n"); semicolon=0; RETURN_TOKEN(ELSE); yycolno+=yyleng;}
+#line 60 "gocompiler.l"
+{if (l_flag) printf("ELSE\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(ELSE);}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 59 "gocompiler.l"
-{if (l_flag) printf("FOR\n"); semicolon=0; RETURN_TOKEN(FOR); yycolno+=yyleng;}
+#line 61 "gocompiler.l"
+{if (l_flag) printf("FOR\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FOR);}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 60 "gocompiler.l"
-{if (l_flag) printf("IF\n"); semicolon=0; RETURN_TOKEN(IF); yycolno+=yyleng;}
+#line 62 "gocompiler.l"
+{if (l_flag) printf("IF\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(IF);}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 61 "gocompiler.l"
-{if (l_flag) printf("VAR\n"); semicolon=0; RETURN_TOKEN(VAR); yycolno+=yyleng;}
+#line 63 "gocompiler.l"
+{if (l_flag) printf("VAR\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(VAR);}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 62 "gocompiler.l"
-{if (l_flag) printf("INT\n"); semicolon=0; RETURN_TOKEN(INT); yycolno+=yyleng;}
+#line 64 "gocompiler.l"
+{if (l_flag) printf("INT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(INT);}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 63 "gocompiler.l"
-{if (l_flag) printf("FLOAT32\n"); semicolon=0; RETURN_TOKEN(FLOAT32); yycolno+=yyleng;}
+#line 65 "gocompiler.l"
+{if (l_flag) printf("FLOAT32\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FLOAT32);}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 64 "gocompiler.l"
-{if (l_flag) printf("BOOL\n"); semicolon=0; RETURN_TOKEN(BOOL); yycolno+=yyleng;}
+#line 66 "gocompiler.l"
+{if (l_flag) printf("BOOL\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(BOOL);}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 65 "gocompiler.l"
-{if (l_flag) printf("STRING\n"); semicolon=0; RETURN_TOKEN(STRING); yycolno+=yyleng;}
+#line 67 "gocompiler.l"
+{if (l_flag) printf("STRING\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(STRING);}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 66 "gocompiler.l"
-{if (l_flag) printf("PRINT\n"); semicolon=0; RETURN_TOKEN(PRINT); yycolno+=yyleng; }
+#line 68 "gocompiler.l"
+{if (l_flag) printf("PRINT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PRINT);}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 67 "gocompiler.l"
-{if (l_flag) printf("PARSEINT\n"); semicolon=0; RETURN_TOKEN(PARSEINT); yycolno+=yyleng;}
+#line 69 "gocompiler.l"
+{if (l_flag) printf("PARSEINT\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(PARSEINT);}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 68 "gocompiler.l"
-{if (l_flag) printf("FUNC\n"); semicolon=0; RETURN_TOKEN(FUNC); yycolno+=yyleng;}
+#line 70 "gocompiler.l"
+{if (l_flag) printf("FUNC\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(FUNC);}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 69 "gocompiler.l"
-{if (l_flag) printf("CMDARGS\n"); semicolon=0; RETURN_TOKEN(CMDARGS); yycolno+=yyleng;}
+#line 71 "gocompiler.l"
+{if (l_flag) printf("CMDARGS\n"); semicolon=0;  yycolno+=yyleng;RETURN_TOKEN(CMDARGS);}
 	YY_BREAK
 /* RESERVED */
 case 39:
 YY_RULE_SETUP
-#line 72 "gocompiler.l"
-{if (l_flag) printf("RESERVED(++)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 74 "gocompiler.l"
+{if (l_flag) printf("RESERVED(++)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 73 "gocompiler.l"
-{if (l_flag) printf("RESERVED(--)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 75 "gocompiler.l"
+{if (l_flag) printf("RESERVED(--)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 74 "gocompiler.l"
-{if (l_flag) printf("RESERVED(break)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 76 "gocompiler.l"
+{if (l_flag) printf("RESERVED(break)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 75 "gocompiler.l"
-{if (l_flag) printf("RESERVED(case)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 77 "gocompiler.l"
+{if (l_flag) printf("RESERVED(case)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 76 "gocompiler.l"
-{if (l_flag) printf("RESERVED(chan)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 78 "gocompiler.l"
+{if (l_flag) printf("RESERVED(chan)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 77 "gocompiler.l"
-{if (l_flag) printf("RESERVED(const)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 79 "gocompiler.l"
+{if (l_flag) printf("RESERVED(const)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 78 "gocompiler.l"
-{if (l_flag) printf("RESERVED(continue)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 80 "gocompiler.l"
+{if (l_flag) printf("RESERVED(continue)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 79 "gocompiler.l"
-{if (l_flag) printf("RESERVED(default)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 81 "gocompiler.l"
+{if (l_flag) printf("RESERVED(default)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 80 "gocompiler.l"
-{if (l_flag) printf("RESERVED(defer)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 82 "gocompiler.l"
+{if (l_flag) printf("RESERVED(defer)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 81 "gocompiler.l"
-{if (l_flag) printf("RESERVED(fallthrough)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 83 "gocompiler.l"
+{if (l_flag) printf("RESERVED(fallthrough)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 82 "gocompiler.l"
-{if (l_flag) printf("RESERVED(go)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 84 "gocompiler.l"
+{if (l_flag) printf("RESERVED(go)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 83 "gocompiler.l"
-{if (l_flag) printf("RESERVED(goto)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 85 "gocompiler.l"
+{if (l_flag) printf("RESERVED(goto)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 84 "gocompiler.l"
-{if (l_flag) printf("RESERVED(import)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 86 "gocompiler.l"
+{if (l_flag) printf("RESERVED(import)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 85 "gocompiler.l"
-{if (l_flag) printf("RESERVED(interface)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 87 "gocompiler.l"
+{if (l_flag) printf("RESERVED(interface)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 86 "gocompiler.l"
-{if (l_flag) printf("RESERVED(map)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 88 "gocompiler.l"
+{if (l_flag) printf("RESERVED(map)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 87 "gocompiler.l"
-{if (l_flag) printf("RESERVED(range)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 89 "gocompiler.l"
+{if (l_flag) printf("RESERVED(range)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 88 "gocompiler.l"
-{if (l_flag) printf("RESERVED(select)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 90 "gocompiler.l"
+{if (l_flag) printf("RESERVED(select)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 89 "gocompiler.l"
-{if (l_flag) printf("RESERVED(struct)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 91 "gocompiler.l"
+{if (l_flag) printf("RESERVED(struct)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 90 "gocompiler.l"
-{if (l_flag) printf("RESERVED(switch)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 92 "gocompiler.l"
+{if (l_flag) printf("RESERVED(switch)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 91 "gocompiler.l"
-{if (l_flag) printf("RESERVED(type)\n"); semicolon=0; RETURN_TOKEN(RESERVED); yycolno+=yyleng;}
+#line 93 "gocompiler.l"
+{if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=yyleng; RETURN_TOKEN(RESERVED); }
 	YY_BREAK
 /* INTLIT */
 case 59:
 YY_RULE_SETUP
-#line 95 "gocompiler.l"
-{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+#line 97 "gocompiler.l"
+{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 97 "gocompiler.l"
-{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+#line 99 "gocompiler.l"
+{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 99 "gocompiler.l"
-{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+#line 101 "gocompiler.l"
+{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 101 "gocompiler.l"
-{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(INTLIT); yycolno+=yyleng; }
+#line 103 "gocompiler.l"
+{if (l_flag) printf("INTLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; RETURN_TOKEN(INTLIT);  }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 103 "gocompiler.l"
+#line 105 "gocompiler.l"
 {printf("Line %d, column %d: invalid octal constant (%s)\n",yylineno, yycolno, yytext);lexical_error = 1; semicolon=0; yycolno+=yyleng;}
 	YY_BREAK
 /* REALLIT */
 /*parte inteira seguida de ponto, opcional parte fraccionaria e/ou expoente*/
 case 64:
 YY_RULE_SETUP
-#line 110 "gocompiler.l"
-{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(REALLIT); yycolno+=yyleng;  }
+#line 112 "gocompiler.l"
+{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(REALLIT);   }
 	YY_BREAK
 /*ponto com parte fraccionaria, opcional seguida de expoente*/
 case 65:
 YY_RULE_SETUP
-#line 113 "gocompiler.l"
-{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; RETURN_TOKEN(REALLIT); yycolno+=yyleng; }
+#line 115 "gocompiler.l"
+{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng;RETURN_TOKEN(REALLIT);  }
 	YY_BREAK
 /*parte inteira seguida de expoente*/
 case 66:
 YY_RULE_SETUP
-#line 116 "gocompiler.l"
-{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1;  RETURN_TOKEN(REALLIT); yycolno+=yyleng;}
+#line 118 "gocompiler.l"
+{if (l_flag) printf("REALLIT(%s)\n", yytext); semicolon=1;  yycolno+=yyleng;RETURN_TOKEN(REALLIT); }
 	YY_BREAK
 /* STRLIT */
 /*string completa sem erros*/
 case 67:
 YY_RULE_SETUP
-#line 121 "gocompiler.l"
-{if (l_flag) printf("STRLIT(\"%s)\n", yytext); semicolon=1;  RETURN_TOKEN(STRLIT); yycolno+=yyleng; BEGIN 0; }
+#line 123 "gocompiler.l"
+{if (l_flag) printf("STRLIT(\"%s)\n", yytext); semicolon=1; yycolno+=yyleng; BEGIN 0; RETURN_TOKEN(STRLIT);   }
 	YY_BREAK
 /*string completa sem erros*/
 case 68:
 YY_RULE_SETUP
-#line 124 "gocompiler.l"
+#line 126 "gocompiler.l"
 {BEGIN STRLITERR; begcol=yycolno;yycolno++;}
 	YY_BREAK
 /* Erros */
 case 69:
 /* rule 69 can match eol */
 YY_RULE_SETUP
-#line 128 "gocompiler.l"
+#line 130 "gocompiler.l"
 {BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
-                                    printf("Line %d, column %d: unterminated string literal1\n", yylineno, begcol); lexical_error = 1;
+                                    printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1;
                                     yycolno=1;yylineno++;semicolon=0;}
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 131 "gocompiler.l"
+#line 133 "gocompiler.l"
 {BEGIN STRLITERROR;yycolno+=yyleng;}
 	YY_BREAK
 case 71:
 /* rule 71 can match eol */
 YY_RULE_SETUP
-#line 132 "gocompiler.l"
+#line 134 "gocompiler.l"
 {BEGIN STRLITERROR; printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); lexical_error = 1; yycolno+=yyleng;semicolon=0;}
 	YY_BREAK
 case 72:
 /* rule 72 can match eol */
 YY_RULE_SETUP
-#line 133 "gocompiler.l"
-{BEGIN 0; printf("Line %d, column %d: unterminated string literal2\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
+#line 135 "gocompiler.l"
+{BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 134 "gocompiler.l"
+#line 136 "gocompiler.l"
 {BEGIN STRLITERROR;yycolno+=yyleng; }
 	YY_BREAK
 case YY_STATE_EOF(STRLITERR):
-#line 135 "gocompiler.l"
-{printf("Line %d, column %d: unterminated string literal3\n", yylineno, begcol);lexical_error = 1;BEGIN 0;}
+#line 137 "gocompiler.l"
+{printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1;BEGIN 0;}
 	YY_BREAK
 case 74:
 /* rule 74 can match eol */
 YY_RULE_SETUP
-#line 138 "gocompiler.l"
+#line 140 "gocompiler.l"
 {BEGIN 0; printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno);
-                                    printf("Line %d, column %d: unterminated string literal4\n", yylineno, begcol); lexical_error = 1;
+                                    printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1;
                                     yycolno=1;yylineno++;semicolon=0;}
 	YY_BREAK
 case 75:
 /* rule 75 can match eol */
 YY_RULE_SETUP
-#line 141 "gocompiler.l"
+#line 143 "gocompiler.l"
 {printf("Line %d, column %d: invalid escape sequence (%s)\n", yylineno, yycolno, yytext); yycolno+=yyleng;semicolon=0; lexical_error = 1;}
 	YY_BREAK
 case 76:
 /* rule 76 can match eol */
 YY_RULE_SETUP
-#line 142 "gocompiler.l"
-{BEGIN 0; printf("Line %d, column %d: unterminated string literal5\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
+#line 144 "gocompiler.l"
+{BEGIN 0; printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol);lexical_error = 1; yycolno=1;yylineno++;semicolon=0;}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 143 "gocompiler.l"
+#line 145 "gocompiler.l"
 {;yycolno+=yyleng;}
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 144 "gocompiler.l"
+#line 146 "gocompiler.l"
 {yycolno+=yyleng;BEGIN 0;}
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 145 "gocompiler.l"
+#line 147 "gocompiler.l"
 {printf("Line %d, column %d: invalid escape sequence (\\)\n", yylineno, yycolno); lexical_error = 1; yycolno+=yyleng;}
 	YY_BREAK
 case YY_STATE_EOF(STRLITERROR):
-#line 146 "gocompiler.l"
-{printf("Line %d, column %d: unterminated string literal6\n", yylineno, begcol); lexical_error = 1; BEGIN 0;}
+#line 148 "gocompiler.l"
+{printf("Line %d, column %d: unterminated string literal\n", yylineno, begcol); lexical_error = 1; BEGIN 0;}
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 147 "gocompiler.l"
+#line 149 "gocompiler.l"
 {yycolno+=yyleng;}
 	YY_BREAK
 /* IDs */
 case 81:
 YY_RULE_SETUP
-#line 151 "gocompiler.l"
-{if (l_flag) printf("ID(%s)\n", yytext);semicolon=1; RETURN_TOKEN(ID); yycolno+=yyleng;  }
+#line 153 "gocompiler.l"
+{if (l_flag) printf("ID(%s)\n", yytext);semicolon=1; yycolno+=yyleng;RETURN_TOKEN(ID);   }
 	YY_BREAK
 /*COMMENTS*/
 case 82:
 YY_RULE_SETUP
-#line 154 "gocompiler.l"
+#line 156 "gocompiler.l"
 {BEGIN COMMENT1LINE;yycolno+=yyleng;}
 	YY_BREAK
 case 83:
 /* rule 83 can match eol */
 YY_RULE_SETUP
-#line 156 "gocompiler.l"
+#line 158 "gocompiler.l"
 {BEGIN 0;yylineno++;yycolno=1;}
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 157 "gocompiler.l"
+#line 159 "gocompiler.l"
 {yycolno+=yyleng;}
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 160 "gocompiler.l"
+#line 162 "gocompiler.l"
 {BEGIN COMMENTMULTILINE;begcol=yycolno;begline=yylineno;yycolno+=yyleng;}
 	YY_BREAK
 case YY_STATE_EOF(COMMENTMULTILINE):
-#line 161 "gocompiler.l"
+#line 163 "gocompiler.l"
 {printf("Line %d, column %d: unterminated comment\n",begline, begcol); lexical_error = 1; BEGIN 0; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 162 "gocompiler.l"
+#line 164 "gocompiler.l"
 {BEGIN 0;yycolno+=yyleng;}
 	YY_BREAK
 case 87:
 /* rule 87 can match eol */
 YY_RULE_SETUP
-#line 163 "gocompiler.l"
+#line 165 "gocompiler.l"
 {yycolno=1;yylineno++;}
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 164 "gocompiler.l"
+#line 166 "gocompiler.l"
 {yycolno+=yyleng;}
 	YY_BREAK
 case 89:
 /* rule 89 can match eol */
 YY_RULE_SETUP
-#line 169 "gocompiler.l"
+#line 171 "gocompiler.l"
 {
             if (semicolon){
                 if (l_flag) printf("SEMICOLON\n");
                 semicolon=0;
-                RETURN_TOKEN(SEMICOLON);
+
+                yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); \
+                yycolno=1;
+                yylineno++;
+                return SEMICOLON;
+                
             };
             yylineno++;
             yycolno=1;
@@ -1481,31 +1488,39 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT1LINE):
-#line 179 "gocompiler.l"
-{if (semicolon){ if (l_flag) printf("SEMICOLON\n"); RETURN_TOKEN(SEMICOLON);}; yyterminate();} 
+#line 186 "gocompiler.l"
+{if (semicolon){ 
+            if (l_flag) 
+                printf("SEMICOLON\n"); 
+            yycolno++; 
+            RETURN_TOKEN(SEMICOLON);
+            }
+            yycolno+=yyleng;
+            RETURN_TOKEN(0);
+            yyterminate();} 
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 181 "gocompiler.l"
+#line 196 "gocompiler.l"
 {yycolno+=yyleng;}
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 182 "gocompiler.l"
+#line 197 "gocompiler.l"
 {yycolno+=yyleng;}
 	YY_BREAK
 /* Caraters ilegais*/
 case 92:
 YY_RULE_SETUP
-#line 185 "gocompiler.l"
+#line 200 "gocompiler.l"
 {printf("Line %d, column %d: illegal character (%s)\n",yylineno, yycolno, yytext); lexical_error = 1; yycolno+=yyleng;}
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 188 "gocompiler.l"
+#line 203 "gocompiler.l"
 ECHO;
 	YY_BREAK
-#line 1509 "lex.yy.c"
+#line 1524 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2508,7 +2523,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 188 "gocompiler.l"
+#line 203 "gocompiler.l"
 
 
 int yywrap()
@@ -2517,6 +2532,6 @@ int yywrap()
 }
 
 void yyerror ( char *s) {
-    printf (" Line  %d,  column  %d: %s: %s\n", yylineno, yycolno, s, yytext );
+    printf ("Line %d, column %d: %s: %s\n", yylineno, yycolno-yyleng, s, yytext );
 }
 

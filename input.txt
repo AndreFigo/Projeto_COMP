@@ -1,46 +1,38 @@
-package main;
 
-func main(){
+package main
 
-    {
-        fmt.Println("Sem block aqui")
-    }
+var (n int;)
 
-    {
-        fmt.Println("2 statements")
-        fmt.Println("Precisa de block")
-    }
+func danglingelse(n int) {
+	for {
+		n = 0;
+		return new
+		return
+	}
 
+	for (n != 0) {
+		n = 0 == 1;
+		n = function()
+		{{return;};}
+		if 1 {
+			if(1){
+				n=0;
+			} else {
+				n=1
+			}
 
-    if 1+1 {
-        
-    }
+		} else {
+		}
+		
+		function (n || x)
+		function (n, x)
+	}
 
-    if 2+2 {
-        a = 2
-    }
+	n, _ = strconv.Atoi(os.Args[n])
 
-    if 3+3 {
-        b = 3
-    } else {
-
-    }
-
-    if 4+4 {
-        c = 4
-    } else {
-        d = 5
-    }
-
-    for {
-        
-    }
-
-    for {
-        e = 6
-    }
-
-    for 7+7 {
-        f = 7
-    }
+	"aksjd";
+	"akjd";
+	"aksjd";
+	fmt.Println(n)
+	fmt.Println("\x")
 }

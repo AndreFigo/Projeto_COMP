@@ -1,0 +1,92 @@
+Line 3, col 6: Symbol no_function already defined
+Line 11, col 5: Symbol soma already defined
+Line 15, col 6: Symbol soma already defined
+Line 19, col 5: Symbol soma already defined
+===== Global Symbol Table =====
+putchar	int(int)
+getchar	int(void)
+no_function int
+soma	int(int,int)
+no_name	void(int,int,int)
+
+===== Function soma Symbol Table =====
+return	int
+i	int	param
+j	int	param
+
+===== Function no_name Symbol Table =====
+return	void
+
+Program
+..Declaration
+....Int
+....Id(no_function)
+..FuncDefinition
+....Void
+....Id(no_function)
+....ParamList
+......ParamDeclaration
+........Void
+....FuncBody
+..FuncDefinition
+....Int
+....Id(soma)
+....ParamList
+......ParamDeclaration
+........Int
+........Id(i)
+......ParamDeclaration
+........Int
+........Id(j)
+....FuncBody
+......Return
+........Add - int
+..........Id(i) - int
+..........Id(j) - int
+..FuncDefinition
+....Int
+....Id(soma)
+....ParamList
+......ParamDeclaration
+........Char
+........Id(j)
+....FuncBody
+..FuncDefinition
+....Char
+....Id(soma)
+....ParamList
+......ParamDeclaration
+........Char
+........Id(i)
+......ParamDeclaration
+........Char
+........Id(j)
+....FuncBody
+..FuncDefinition
+....Int
+....Id(soma)
+....ParamList
+......ParamDeclaration
+........Int
+........Id(i)
+......ParamDeclaration
+........Int
+........Id(j)
+....FuncBody
+......Return
+........Add - int
+..........Id(i) - int
+..........Id(j) - int
+..FuncDefinition
+....Void
+....Id(no_name)
+....ParamList
+......ParamDeclaration
+........Int
+......ParamDeclaration
+........Int
+......ParamDeclaration
+........Int
+....FuncBody
+......Return
+........Null
