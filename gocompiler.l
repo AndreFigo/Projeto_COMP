@@ -184,8 +184,8 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
 
 <<EOF>>  {if (semicolon){ 
             if (l_flag) 
-                printf("SEMICOLON\n"); 
-            yycolno++; 
+                printf("SEMICOLON\n");  
+            semicolon=0;
             RETURN_TOKEN(SEMICOLON);
             }
             yycolno+=yyleng;
@@ -207,5 +207,5 @@ int yywrap()
 }
 
 void yyerror ( char *s) {
-    printf ("Line %d, column %d: %s: %s\n", yylineno, yycolno-yyleng, s, yytext );
+    printf ("Line %d, column %d: %s: %s\n", yylval.token.n_line, yylval.token.n_col, s, yytext );
 }

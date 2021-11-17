@@ -60,8 +60,8 @@ Program:            PACKAGE ID SEMICOLON Declarations                           
             
 Declarations:       VarDeclaration SEMICOLON                                                    {$$=$1;}
             |       FuncDeclaration SEMICOLON                                                   {$$=$1;}
-            |       Declarations VarDeclaration SEMICOLON                                       {add_siblings($1,1,$2);}
-            |       Declarations FuncDeclaration SEMICOLON                                      {add_siblings($1,1,$2);}
+            |       Declarations VarDeclaration SEMICOLON                                       {$$=add_siblings($1,1,$2);}
+            |       Declarations FuncDeclaration SEMICOLON                                      {$$=add_siblings($1,1,$2);}
             ;
             
 VarDeclaration:     VAR VarSpec                                                                 {$$=split_vardecl($2, null_token); }
@@ -69,12 +69,12 @@ VarDeclaration:     VAR VarSpec                                                 
             ;
             
 VarSpec:            ID CommaId Type                                                             {$$ = create_node("Id", $1);
-                                                                                                    add_siblings($3,2, $$, $2); $$=$3;
+                                                                                                    $$=add_siblings($3,2, $$, $2);
                                                                                                 }
             ;
 
 CommaId:            COMMA ID CommaId                                                            {$$= create_node("Id", $2);
-                                                                                                    add_siblings($$,1,$3);
+                                                                                                    $$=add_siblings($$,1,$3);
                                                                                                 }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
@@ -105,7 +105,7 @@ Parameters:         ID Type CommaIdType                                         
 
 CommaIdType:        COMMA ID Type CommaIdType                                                   {$$ = create_node("ParamDecl", null_token);
                                                                                                     add_children($$,2, $3, create_node("Id", $2));
-                                                                                                    add_siblings($$, 1, $4);}
+                                                                                                    $$=add_siblings($$, 1, $4);}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
@@ -114,11 +114,10 @@ FuncBody:           LBRACE VarsAndStatements RBRACE                             
                                                                                                 }
             ;
   
-VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                                      {add_siblings($1, 1, $3);$$=$1;}
-            |       error SEMICOLON  VarsAndStatements                                          {syntax_error = 1;   /*printf("stat1\n"); */ $$=create_node("Error",null_token); 
-                                                                                                    add_siblings($$, 1, $3); }
-
-            |       VarDeclaration SEMICOLON VarsAndStatements                                  {add_siblings($1, 1, $3); $$=$1;}
+VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                                      {$$=add_siblings($1, 1, $3);}
+            |       error SEMICOLON  VarsAndStatements                                          {syntax_error = 1;   /*printf("stat1\n");*/  $$=create_node("Error",null_token); 
+                                                                                                    $$=add_siblings($$, 1, $3); }
+            |       VarDeclaration SEMICOLON VarsAndStatements                                  {$$=add_siblings($1, 1, $3);}
             |       SEMICOLON VarsAndStatements                                                 {$$=$2;/*!!!!!!!!!!!! ATENÇAO AQUI*/}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
@@ -127,7 +126,8 @@ Statement:          ID ASSIGN Expr                                              
                                                                                                     add_children($$, 2, create_node("Id",$1), $3);
                                                                                                 }
 
-            |       LBRACE StatementSemicolon RBRACE                                            {   if ($2->nSibling == NULL) $$=$2;
+            |       LBRACE StatementSemicolon RBRACE                                            {   if ($2==NULL){ $$=$2;}
+                                                                                                    else if ($2->nSibling == NULL) {$$=$2;}
                                                                                                     else{
                                                                                                         $$ = create_node("Block", null_token);
                                                                                                         add_children($$, 1, $2);
@@ -181,9 +181,9 @@ Statement:          ID ASSIGN Expr                                              
 
             ;
   
-StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {add_siblings($1, 1, $3); $$=$1;}
+StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {$$=add_siblings($1, 1, $3); }
             |       error SEMICOLON StatementSemicolon                                          {syntax_error = 1;   /*printf("stat2\n");*/  $$=create_node("Error",null_token); 
-                                                                                                    add_siblings($$, 1, $3); }
+                                                                                                    $$=add_siblings($$, 1, $3); }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
             
@@ -202,7 +202,7 @@ FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                 
             |       ID LPAR  error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);}
 
             ;
-CommaExpr:          COMMA Expr CommaExpr                                                        {add_siblings($2,1,$3); $$=$2;}
+CommaExpr:          COMMA Expr CommaExpr                                                        {$$=add_siblings($2,1,$3); }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 

@@ -19,8 +19,10 @@ ast_node_t *create_node(char *type, token_t token)
 
 void add_children(ast_node_t *parent, int n_children, ...)
 {
+    //printf("5\n");
     if (n_children < 0)
         return;
+
     va_list args;
     va_start(args, n_children);
 
@@ -35,29 +37,40 @@ void add_children(ast_node_t *parent, int n_children, ...)
             cur_child->nSibling = next_child;
             cur_child = cur_child->nSibling;
 
-            next_child = next_child->nSibling; // in case the child already has siblings
+            next_child = next_child->nSibling; // in case the child already has s   iblings
         }
     }
     va_end(args);
+    //printf("6\n");
 }
 
-void add_siblings(ast_node_t *first, int n_siblings, ...)
+ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
 {
 
+    //printf("3\n");
     if (n_siblings < 0)
-        return;
+        return first;
+
     va_list args;
     va_start(args, n_siblings);
 
     ast_node_t *cur_sib = first, *next;
 
-    while (cur_sib->nSibling != NULL)
-        cur_sib = cur_sib->nSibling;
+    if (first != NULL)
+    {
+        while (cur_sib->nSibling != NULL)
+            cur_sib = cur_sib->nSibling;
+    }
 
     for (int i = 0; i < n_siblings; i++)
     {
         next = va_arg(args, ast_node_t *);
-        if (next)
+        if (next && !first)
+        {
+            first = next;
+            cur_sib = first;
+        }
+        else if (next)
         {
             cur_sib->nSibling = next;
             cur_sib = cur_sib->nSibling;
@@ -65,7 +78,8 @@ void add_siblings(ast_node_t *first, int n_siblings, ...)
     }
 
     va_end(args);
-    return;
+    return first;
+    //printf("4\n");
 }
 
 // ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
@@ -98,7 +112,7 @@ void add_siblings(ast_node_t *first, int n_siblings, ...)
 
 ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
 {
-
+    //printf("1\n");
     if (node == NULL)
         return NULL;
 
@@ -129,6 +143,8 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
         new_id = create_node("Id", vars->token);
         add_siblings(current->fChild, 1, new_id);
     }
+    //printf("2\n");
+
     return first;
 }
 
