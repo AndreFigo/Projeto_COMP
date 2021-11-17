@@ -31,8 +31,27 @@ func danglingelse(n int) {
 	n, _ = strconv.Atoi(os.Args[n])
 
 	"aksjd";
-	"akjd";
-	"aksjd";
-	fmt.Println(n)
+		n = 0;
+		n = 0;
+		n = 0;
+
 	fmt.Println("\x")
+	fmt.Println("\x")
+	fmt.Println("\x")
+		n = 0;
+		n = 0;
+		n = 0;
+
+	"akjd";
+		n = 0;
+		n = 0;
+		n = 0;
+
+	"aksjd";
+
+		n = 0;
+		n = 0;
+		n = 0;
+
+	fmt.Println(n)
 }
