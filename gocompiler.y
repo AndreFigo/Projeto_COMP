@@ -177,6 +177,10 @@ Statement:          ID ASSIGN Expr                                              
                                                                                                     syntax_error = 1;
                                                                                                    /* printf("print\n");*/
                                                                                                 }
+            |       PRINT LPAR error SEMICOLON                                                  {$$ = create_node("Error", null_token);
+                                                                                                    syntax_error = 1;
+                                                                                                   /* printf("print\n");*/
+                                                                                                }
 
 
             ;
@@ -191,15 +195,17 @@ ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ R
                                                                                                     add_children($$, 2, create_node("Id", $1),$9);
                                                                                                 }
             |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);}
+            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error SEMICOLON                       {syntax_error = 1;  $$ = create_node("Error",null_token);}
             ;
 
 FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {$$ = create_node("Call", null_token);
                                                                                                     add_children($$, 3, create_node("Id", $1), $3, $4);
                                                                                                 }
-            |       ID LPAR  RPAR                                                               {$$ = create_node("Call", null_token);
+            |       ID LPAR RPAR                                                               {$$ = create_node("Call", null_token);
                                                                                                     add_children($$, 1, create_node("Id", $1));
                                                                                                 }
-            |       ID LPAR  error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);}
+            |       ID LPAR error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);}
+            |       ID LPAR error SEMICOLON                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);}
 
             ;
 CommaExpr:          COMMA Expr CommaExpr                                                        {$$=add_siblings($2,1,$3); }
@@ -264,6 +270,7 @@ Expr:               Expr OR  Expr                                               
             |       FuncInvocation                                                              {$$=$1;}
             |       LPAR Expr RPAR                                                              {$$=$2;}
             |       LPAR error RPAR                                                             {syntax_error = 1;  $$ = create_node("Error",null_token);}
+            |       LPAR error SEMICOLON                                                        {syntax_error = 1;  $$ = create_node("Error",null_token);}
             ;
 
 %%
