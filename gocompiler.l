@@ -14,7 +14,7 @@ newline \r\n|\r|\n
         return __VA_ARGS__; \
     }
 
-        //printf("yytext %s, line %d, col %d, type %d\n", yytext, yylineno, yycolno, __VA_ARGS__);\
+
     
     extern int l_flag, t_flag;
     extern int lexical_error;
