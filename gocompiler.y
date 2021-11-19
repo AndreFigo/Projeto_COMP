@@ -10,6 +10,7 @@
 
     int yylex(void);
     void yyerror (char *s);
+    int yylex_destroy();
 
     int l_flag = 0, t_flag = 0;
     int lexical_error = 0, syntax_error = 0;
@@ -53,8 +54,9 @@
 
 Program:            PACKAGE ID SEMICOLON Declarations                                           {$$=program=create_node("Program", null_token);
                                                                                                     add_children($$,1,$4);
+                                                                                                    free($2.text);
                                                                                                 }
-            |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token);}
+            |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token); free($2.text);}
             
             ;
             
@@ -79,15 +81,14 @@ CommaId:            COMMA ID CommaId                                            
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Type:               INT                                                                         {$$= create_node("Int", $1); }
-            |       FLOAT32                                                                     {$$= create_node("Float32", $1);}
-            |       BOOL                                                                        {$$= create_node("Bool", $1);}
-            |       STRING                                                                      {$$= create_node("String", $1);}
+Type:               INT                                                                         {$$= create_node("Int", null_token); }
+            |       FLOAT32                                                                     {$$= create_node("Float32", null_token);}
+            |       BOOL                                                                        {$$= create_node("Bool", null_token);}
+            |       STRING                                                                      {$$= create_node("String", null_token);}
             ;
   
 FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {$$= create_node("FuncDecl", null_token);
-                                                                                                    aux_node= create_node("FuncHeader", null_token); 
-                                                                                                    
+                                                                                                    aux_node= create_node("FuncHeader", null_token);                                                                                                
                                                                                                     add_children(aux_node, 3, create_node("Id", $2),$6,$4);
                                                                                                     add_children($$,2,aux_node, $7); }
             |       FUNC ID LPAR Parameters RPAR  FuncBody                                      {$$= create_node("FuncDecl", null_token);
@@ -118,7 +119,7 @@ VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                      
             |       error SEMICOLON  VarsAndStatements                                          {syntax_error = 1;   /*printf("stat1\n");*/  $$=create_node("Error",null_token); 
                                                                                                     $$=add_siblings($$, 1, $3); }
             |       VarDeclaration SEMICOLON VarsAndStatements                                  {$$=add_siblings($1, 1, $3);}
-            |       SEMICOLON VarsAndStatements                                                 {$$=$2;/*!!!!!!!!!!!! ATENÇAO AQUI*/}
+            |       SEMICOLON VarsAndStatements                                                 {$$=$2;}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
@@ -186,7 +187,7 @@ StatementSemicolon: Statement SEMICOLON StatementSemicolon                      
 ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {$$=create_node("ParseArgs", null_token);
                                                                                                     add_children($$, 2, create_node("Id", $1),$9);
                                                                                                 }
-            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);}
+            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);free($1.text);}
             ;
 
 FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {$$ = create_node("Call", null_token);
@@ -195,7 +196,7 @@ FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                 
             |       ID LPAR RPAR                                                               {$$ = create_node("Call", null_token);
                                                                                                     add_children($$, 1, create_node("Id", $1));
                                                                                                 }
-            |       ID LPAR error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);}
+            |       ID LPAR error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);free($1.text);}
 
             ;
 CommaExpr:          COMMA Expr CommaExpr                                                        {$$=add_siblings($2,1,$3); }
@@ -294,7 +295,11 @@ int main(int argc, char *argv[]) {
         }
         
         print_program(program);
+        if (program  && !lexical_error)
+            free_ast(program);
+
     }
+    yylex_destroy();
 
     return 0;
 }

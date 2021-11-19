@@ -154,8 +154,8 @@ void free_ast(ast_node_t *node)
         free_ast(node->fChild);
     if (node->nSibling != NULL)
         free_ast(node->nSibling);
-    if (node->type)
-        free(node->type);
+    if (node->token.text)
+        free(node->token.text);
     free(node);
 }
 
