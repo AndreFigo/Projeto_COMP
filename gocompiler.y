@@ -5,6 +5,7 @@
     #include "utils.h"
     #include "AST.h"
     #include "structures.h"
+    #include "semantics.h"
     #include "y.tab.h"
 
 
@@ -12,10 +13,11 @@
     void yyerror (char *s);
     int yylex_destroy();
 
-    int l_flag = 0, t_flag = 0;
+    int l_flag = 0, t_flag = 0, s_flag = 0;
     int lexical_error = 0, syntax_error = 0;
 
     ast_node_t *program = NULL; // root
+    table_t *current_table = NULL, *global_table = NULL;
     ast_node_t *aux_node = NULL, *aux_node2 = NULL;
     token_t null_token = {.text= NULL, .n_col=-1, .n_line=-1};
 %}
@@ -295,6 +297,11 @@ int main(int argc, char *argv[]) {
         }
         
         print_program(program);
+        printf("\n");
+        if(!syntax_error && !lexical_error){
+            create_symtab(program);
+            print_tables();
+        }
         if (program  && !lexical_error)
             free_ast(program);
 

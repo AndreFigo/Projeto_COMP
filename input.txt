@@ -1,57 +1,17 @@
-
 package main
 
-var (n int;)
 
-func danglingelse(n int) {
-	for {
-		n = 0;
-		return new
-		return
-	}
 
-	for (n != 0) {
-		n = 0 == 1;
-		n = function()
-		{{return;};}
-		if 1 {
-			if(1){
-				n=0;
-			} else {
-				n=1
-			}
+func main() {
+	
+}
 
-		} else {
-		}
-		
-		function (n || x)
-		function (n, x)
-	}
+var as int;
+var hhh float32;
+func dev(a int) int {
 
-	n, _ = strconv.Atoi(os.Args[n])
-
-	"aksjd";
-		n = 0;
-		n = 0;
-		n = 0;
-
-	fmt.Println("\x")
-	fmt.Println("\x")
-	fmt.Println("\x")
-		n = 0;
-		n = 0;
-		n = 0;
-
-	"akjd";
-		n = 0;
-		n = 0;
-		n = 0;
-
-	"aksjd";
-
-		n = 0;
-		n = 0;
-		n = 0;
-
-	fmt.Println(n)
+}
+var cc string;
+func add(a int, c string) {
+	
 }

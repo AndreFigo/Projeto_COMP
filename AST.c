@@ -2,7 +2,7 @@
 
 extern int lexical_error, syntax_error;
 
-ast_node_t *create_node(char *type, token_t token)
+ast_node_t *create_node(char *node_name, token_t token)
 {
     ast_node_t *new_node = (ast_node_t *)malloc(sizeof(ast_node_t));
 
@@ -10,7 +10,7 @@ ast_node_t *create_node(char *type, token_t token)
         return NULL;
 
     new_node->token = token;
-    new_node->type = type;
+    new_node->node_name = node_name;
     new_node->nSibling = NULL;
     new_node->fChild = NULL;
 
@@ -117,7 +117,7 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
         return NULL;
 
     int n_vars = 0;
-    ast_node_t *current = node, *first = NULL, *type, *vars = node, *new_id;
+    ast_node_t *current = node, *first = NULL, *name, *vars = node, *new_id;
 
     while (current->nSibling != NULL)
     {
@@ -138,8 +138,8 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
             current->nSibling = create_node("VarDecl", vardecl_tok);
             current = current->nSibling;
         }
-        type = create_node(node->type, node->token);
-        current->fChild = type;
+        name = create_node(node->node_name, node->token);
+        current->fChild = name;
         new_id = create_node("Id", vars->token);
         add_siblings(current->fChild, 1, new_id);
     }
@@ -159,11 +159,11 @@ void free_ast(ast_node_t *node)
     free(node);
 }
 
-void print_ast_node(char *type, token_t tok, int depth)
+void print_ast_node(char *node_name, token_t tok, int depth)
 {
     for (int i = 0; i < depth; i++)
         printf("..");
-    printf("%s", type);
+    printf("%s", node_name);
     if (tok.text != NULL)
         printf("(%s)", tok.text);
     printf("\n");
@@ -171,7 +171,7 @@ void print_ast_node(char *type, token_t tok, int depth)
 
 void print_ast(ast_node_t *node, int depth)
 {
-    print_ast_node(node->type, node->token, depth);
+    print_ast_node(node->node_name, node->token, depth);
     if (node->fChild != NULL)
         print_ast(node->fChild, depth + 1);
     if (node->nSibling != NULL)
