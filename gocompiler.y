@@ -14,7 +14,8 @@
     int yylex_destroy();
 
     int l_flag = 0, t_flag = 0, s_flag = 0;
-    int lexical_error = 0, syntax_error = 0;
+    int lexical_error = 0, syntax_error = 0 ,semantic_error = 0 ;
+                                             
 
     ast_node_t *program = NULL; // root
     table_t *current_table = NULL, *global_table = NULL;
@@ -268,21 +269,23 @@ Expr:               Expr OR  Expr                                               
 %%
 
 void verify_flags(int argc, char * argv[]) {
-    int has_flag=0;
     for(int i = 0; i < argc; i++){
         if (strcmp(argv[i], "-l")==0) {
+            t_flag=s_flag=0;
             l_flag=1;
-            t_flag=0;
-            has_flag=1;
         }
         else if (strcmp(argv[i], "-t")==0) {
-            l_flag=0;
+            l_flag=s_flag=0;
             t_flag=1;
-            has_flag=1;
+
+        }
+        else if (strcmp(argv[i], "-s")==0) {
+            l_flag=t_flag=0;
+            s_flag=1;
+
         }
     }
-    if (!has_flag)
-        t_flag=1;
+    
 }
 
 int main(int argc, char *argv[]) {
@@ -291,20 +294,38 @@ int main(int argc, char *argv[]) {
 
     if (l_flag){
         yylex();
-    }else if(t_flag){
+    }else if(s_flag){
         if (yyparse()){         //error
             syntax_error=1;
         }
         
-        print_program(program);
-        printf("\n");
         if(!syntax_error && !lexical_error){
             create_symtab(program);
+            if(semantic_error)
+                printf("\n");
             print_tables();
+            print_program(program);
         }
         if (program  && !lexical_error)
             free_ast(program);
+    }
+    else if(t_flag){
+        if (yyparse()){         //error
+            syntax_error=1;
+        }
+        print_program(program);
+        free_ast(program);
 
+    }
+    else{
+        if (yyparse()){         //error
+            syntax_error=1;
+        }
+        if(!syntax_error && !lexical_error)
+            create_symtab(program);    
+        
+        if (program  && !lexical_error)
+            free_ast(program);
     }
     yylex_destroy();
 

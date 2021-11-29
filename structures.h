@@ -8,16 +8,6 @@ typedef struct token
     int n_col;
 } token_t;
 
-typedef struct ast_node ast_node_t;
-struct ast_node
-{
-    char *node_name;
-    char *type;
-    token_t token;        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ast_node_t *fChild;   // first child
-    ast_node_t *nSibling; // next sibling
-};
-
 typedef struct param param_t;
 struct param
 {
@@ -51,4 +41,15 @@ struct table
     table_t *next;
 };
 
+typedef struct ast_node ast_node_t;
+struct ast_node
+{
+    char *node_name;
+    char *type;
+    int is_func;
+    table_elem_t *elem;
+    token_t token;        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ast_node_t *fChild;   // first child
+    ast_node_t *nSibling; // next sibling
+};
 #endif

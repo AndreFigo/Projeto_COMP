@@ -3,8 +3,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "utils.h"
+#include "checks.h"
 
 extern table_t *current_table, *global_table;
+extern int semantic_error;
 
 table_t *create_table(int global)
 {
@@ -25,19 +27,66 @@ table_t *create_table(int global)
 
 int add_table(table_t *table)
 {
+    // add table to list
     table_t *aux = global_table;
     for (; aux->next; aux = aux->next)
     {
         if (aux->name && table->name && strcmp(table->name, aux->name) == 0)
         {
-            // TODO: print error
+            // !: print error
             return 1;
         }
     }
 
     aux->next = table;
+    //add function to global table
     insert_elem_func();
     return 0;
+}
+int search_table(ast_node_t *node)
+{
+
+    // 1 = error and 0 = valid
+    //search current
+    if (current_table->first != NULL)
+    {
+        table_elem_t *aux = current_table->first;
+        for (; aux; aux = aux->next)
+        {
+            if (!strcmp(node->token.text, aux->name))
+            {
+                if (aux->is_func)
+                {
+                    node->elem = aux;
+                    node->is_func = 1;
+                }
+                node->type = strdup(aux->type);
+                aux->is_used = 1;
+                return 0;
+            }
+        }
+    }
+    //then search global
+    if (global_table->first != NULL)
+    {
+        table_elem_t *aux = global_table->first;
+        for (; aux; aux = aux->next)
+        {
+            if (!strcmp(node->token.text, aux->name))
+            {
+                if (aux->is_func)
+                {
+                    node->elem = aux;
+                    node->is_func = 1;
+                }
+                node->type = strdup(aux->type);
+                aux->is_used = 1;
+
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 int insert_elem_func()
@@ -142,71 +191,6 @@ table_elem_t *create_return_elem()
     return new_elem;
 }
 
-int check_header(ast_node_t *header)
-{
-
-    ast_node_t *current_node = header->fChild;
-
-    current_table->name = strdup(current_node->token.text);
-
-    current_node = current_node->nSibling;
-    if (strcmp(current_node->node_name, "FuncParams"))
-    {
-        current_table->return_type = strdup(current_node->node_name);
-        current_node = current_node->nSibling;
-    }
-    current_table->first = create_return_elem();
-
-    //FuncParams node
-
-    for (current_node = current_node->fChild; current_node; current_node = current_node->nSibling)
-    {
-        //criar table_elem
-        if (!insert_elem_var(1, current_node))
-        {
-            //!deu erro
-        }
-
-        //add param
-    }
-}
-
-int check_body(ast_node_t *node)
-{
-    if (!strcmp(node->node_name, "VarDecl"))
-    {
-        if (!insert_elem_var(0, node))
-        {
-            //!deu erro
-        }
-        //add to current table
-    }
-    else if (!strcmp(node->node_name, "If"))
-    {
-        if (node->fChild)
-            check_body(node->fChild);
-    }
-    else if (!strcmp(node->node_name, "For"))
-    {
-        if (node->fChild)
-            check_body(node->fChild);
-    }
-    else if (!strcmp(node->node_name, "Print"))
-    {
-    }
-    else if (!strcmp(node->node_name, "Return"))
-    {
-    }
-    else if (!strcmp(node->node_name, "ParseArgs"))
-    {
-    }
-    else if (!strcmp(node->node_name, "Block"))
-    {
-    }
-    if (node->nSibling)
-        check_body(node->nSibling);
-}
-
 int create_symtab(ast_node_t *node)
 {
     if (!strcmp(node->node_name, "Program"))
@@ -223,10 +207,11 @@ int create_symtab(ast_node_t *node)
         current_table = create_table(0);
         //ver func header para preencher o no da tabela
         check_header(node->fChild);
-        check_body(node->fChild->nSibling);
         if (add_table(current_table))
         {
+            //!erro se estiver repetid
         }
+        check_body(node->fChild->nSibling);
         //add to table list
         //add func to global table
         //percorrer o func body e preencher os elems da tabela
@@ -235,7 +220,7 @@ int create_symtab(ast_node_t *node)
     else if (!strcmp(node->node_name, "VarDecl"))
     {
         //create new table elem
-        if (!insert_elem_var(0, node))
+        if (insert_elem_var(0, node))
         {
             //!deu erro
         }
@@ -257,7 +242,7 @@ void print_table(table_t *table)
         if (par)
         {
             for (; par->next; par = par->next)
-                printf("%s, ", to_lower_case(par->type));
+                printf("%s,", to_lower_case(par->type));
             printf("%s", to_lower_case(par->type));
         }
         printf(") Symbol Table =====\n");
@@ -274,7 +259,7 @@ void print_table(table_t *table)
             if (elem->params)
             {
                 for (par = elem->params; par->next; par = par->next)
-                    printf("%s, ", to_lower_case(par->type));
+                    printf("%s,", to_lower_case(par->type));
 
                 printf("%s", to_lower_case(par->type));
             }

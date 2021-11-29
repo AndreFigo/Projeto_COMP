@@ -1,7 +1,8 @@
 #include "AST.h"
-
+#include "utils.h"
+#include "utils.h"
 extern int lexical_error, syntax_error;
-
+extern int s_flag;
 ast_node_t *create_node(char *node_name, token_t token)
 {
     ast_node_t *new_node = (ast_node_t *)malloc(sizeof(ast_node_t));
@@ -13,6 +14,9 @@ ast_node_t *create_node(char *node_name, token_t token)
     new_node->node_name = node_name;
     new_node->nSibling = NULL;
     new_node->fChild = NULL;
+    new_node->is_func = 0;
+    new_node->type = NULL;
+    new_node->elem = NULL;
 
     return new_node;
 }
@@ -169,9 +173,43 @@ void print_ast_node(char *node_name, token_t tok, int depth)
     printf("\n");
 }
 
+void print_ast_node_anottated(ast_node_t *node, int depth)
+{
+    for (int i = 0; i < depth; i++)
+        printf("..");
+    printf("%s", node->node_name);
+    if (node->token.text != NULL)
+        printf("(%s)", node->token.text);
+
+    if (node->is_func)
+    {
+        printf(" - (");
+        table_elem_t *elem = node->elem;
+        param_t *param = elem->params;
+        if (param)
+        {
+            for (; param->next; param = param->next)
+            {
+                printf("%s,", to_lower_case(param->type));
+            }
+            printf("%s", to_lower_case(param->type));
+        }
+        printf(")");
+    }
+    else if (node->type)
+    {
+        printf(" - %s", to_lower_case(node->type));
+    }
+
+    printf("\n");
+}
+
 void print_ast(ast_node_t *node, int depth)
 {
-    print_ast_node(node->node_name, node->token, depth);
+    if (s_flag)
+        print_ast_node_anottated(node, depth);
+    else
+        print_ast_node(node->node_name, node->token, depth);
     if (node->fChild != NULL)
         print_ast(node->fChild, depth + 1);
     if (node->nSibling != NULL)
