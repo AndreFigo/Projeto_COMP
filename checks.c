@@ -11,6 +11,25 @@ int check_header(ast_node_t *header)
 
     current_table->name = strdup(current_node->token.text);
 
+    // add table to list
+    //?????????? TO REVIEW ??????????????
+    table_t *aux = global_table;
+    for (; aux->next; aux = aux->next)
+    {
+        if (aux->name && current_table->name && strcmp(current_table->name, aux->name) == 0)
+        {
+            // !: print error
+            print_symbol_already_defined(header->fChild->token);
+            return 1;
+        }
+    }
+    if (aux->name && current_table->name && strcmp(current_table->name, aux->name) == 0)
+    {
+        // !: print error
+        print_symbol_already_defined(header->fChild->token);
+        return 1;
+    }
+
     current_node = current_node->nSibling;
     if (strcmp(current_node->node_name, "FuncParams"))
     {
@@ -24,13 +43,14 @@ int check_header(ast_node_t *header)
     for (current_node = current_node->fChild; current_node; current_node = current_node->nSibling)
     {
         //criar table_elem
-        if (!insert_elem_var(1, current_node))
+        if (insert_elem_var(1, current_node))
         {
-            //!deu erro
+            //!deu erro  done
         }
 
         //add param
     }
+    return 0;
 }
 
 int check_call(ast_node_t *node)
@@ -55,6 +75,10 @@ int check_call(ast_node_t *node)
     if (params_given != params_needed)
     {
         //!erro
+        print_cannot_find_symbol_func(id_node); //diferente numero
+        id_node->type = strdup("undef");
+
+        return 1;
     }
     else
     {
@@ -63,17 +87,19 @@ int check_call(ast_node_t *node)
         params = id_node->nSibling;
         while (params)
         {
-            if (strcmp(params->type, aux->type))
+            if (strcmp(params->type, aux->type)) // or one is undef?
             {
                 //!erro
-                semantic_error = 1;
+                print_cannot_find_symbol_func(id_node); // diferentes tipos de dados
+                id_node->type = strdup("undef");
+
                 return 1;
             }
             params = params->nSibling;
             aux = aux->next;
         }
     }
-    if (strcmp(id_node->type, "none"))
+    if (strcmp(id_node->type, "none")) // ???? REVIEW
         node->type = strdup(id_node->type);
     return 0;
 }
@@ -82,9 +108,11 @@ int check_logical_operators(ast_node_t *node)
 {
     ast_node_t *left_node = node->fChild;         //id name
     ast_node_t *right_node = left_node->nSibling; //expression
-    if (strcmp(left_node->type, right_node->type))
+    if (strcmp(left_node->type, right_node->type) || (strcmp(left_node->type, "Int") && strcmp(left_node->type, "Float32")))
     {
         //!erro invalid type
+        print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        node->type = strdup("undef");
         return 1;
     }
     node->type = strdup("Bool");
@@ -95,9 +123,19 @@ int check_arithmetic_operators(ast_node_t *node)
 {
     ast_node_t *left_node = node->fChild;         //id name
     ast_node_t *right_node = left_node->nSibling; //expression
-    if (strcmp(left_node->type, right_node->type))
+    // add - tudo excepto none e undef
+    //mul, div, mod, sub  - tudo excepto none, string, undef
+    if (!strcmp(node->node_name, "Add") && (strcmp(left_node->type, right_node->type) || (!strcmp(left_node->type, "none") || !strcmp(left_node->type, "undef") || !strcmp(left_node->type, "Bool"))))
+    {
+        print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        node->type = strdup("undef");
+        return 1;
+    }
+    else if (strcmp(left_node->type, right_node->type) || !strcmp(left_node->type, "none") || !strcmp(left_node->type, "undef") || !strcmp(left_node->type, "String") || !strcmp(left_node->type, "Bool"))
     {
         //!erro invalid type
+        print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        node->type = strdup("undef");
         return 1;
     }
     node->type = strdup(left_node->type);
@@ -107,7 +145,19 @@ int check_arithmetic_operators(ast_node_t *node)
 int check_unary_operator(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild; //id name
-
+    if (!strcmp(node->node_name, "Not") && strcmp(child_node->type, "Bool"))
+    {
+        //!erro
+        print_cannot_be_applied_to_type(node->token, child_node->type);
+        node->type = strdup("undef");
+        return 1;
+    }
+    else if (strcmp(child_node->type, "Int") && strcmp(child_node->type, "Float32"))
+    {
+        print_cannot_be_applied_to_type(node->token, child_node->type);
+        node->type = strdup("undef");
+        return 1;
+    }
     node->type = strdup(child_node->type);
     return 0;
 }
@@ -119,6 +169,8 @@ int check_parse_args(ast_node_t *node)
     if (strcmp(left_node->type, "Int") || strcmp(right_node->type, "Int"))
     {
         //!erro invalid type
+        print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        node->type = strdup("undef");
         return 1;
     }
     node->type = strdup("Int");
@@ -138,16 +190,51 @@ int check_assign(ast_node_t *node)
     if (id_node->is_func)
     {
         //!invalid id
-        return 1;
+        print_cannot_find_symbol(id_node->token);
+        id_node->type = strdup("undef");
     }
 
-    if (strcmp(id_node->type, expr_node->type))
+    if (strcmp(id_node->type, expr_node->type) || !strcmp(id_node->type, "undef") || !strcmp(id_node->type, "none"))
     {
-        //!erro invalid type
+        // !erro invalid type
+        print_cannot_be_applied_to_types(node->token, id_node->type, expr_node->type);
+        node->type = strdup("undef");
         return 1;
     }
 
     node->type = strdup(id_node->type);
+    return 0;
+}
+int check_statements(ast_node_t *node)
+{
+    ast_node_t *child_node = node->fChild;
+
+    if ((!strcmp(node->node_name, "For") || !strcmp(node->node_name, "If")) && strcmp(child_node->type, "Bool"))
+    {
+        // !erro
+        print_incompatible_type(node->token, child_node->type);
+        return 1;
+    }
+    else if (!strcmp(node->node_name, "Print") && (!strcmp(child_node->type, "undef")))
+    {
+        // !erro
+        print_incompatible_type(node->token, child_node->type);
+        return 1;
+    }
+    else if (!strcmp(node->node_name, "Return"))
+    {
+        if (child_node == NULL && strcmp(current_table->return_type, "none"))
+        {
+
+            print_incompatible_type(node->token, "none");
+            return 1;
+        }
+        else if (child_node != NULL && strcmp(current_table->return_type, child_node->type))
+        {
+            print_incompatible_type(node->token, child_node->type);
+            return 1;
+        }
+    }
     return 0;
 }
 
@@ -169,23 +256,29 @@ int check_body(ast_node_t *node)
     }
     else if (!strcmp(node->node_name, "If"))
     {
+
         if (node->fChild)
             check_body(node->fChild);
+        check_statements(node);
     }
     else if (!strcmp(node->node_name, "For"))
     {
         if (node->fChild)
             check_body(node->fChild);
+        check_statements(node);
     }
+
     else if (!strcmp(node->node_name, "Print"))
     {
         //nothing to do
         check_body(node->fChild);
+        check_statements(node);
     }
     else if (!strcmp(node->node_name, "Return"))
     {
         if (node->fChild)
             check_body(node->fChild);
+        check_statements(node);
     }
     else if (!strcmp(node->node_name, "ParseArgs"))
     {

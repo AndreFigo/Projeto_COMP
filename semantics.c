@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "checks.h"
+#include "AST.h"
 
 extern table_t *current_table, *global_table;
 extern int semantic_error;
@@ -25,23 +26,16 @@ table_t *create_table(int global)
     return newTable;
 }
 
-int add_table(table_t *table)
+void add_table(table_t *table, ast_node_t *node)
 {
     // add table to list
     table_t *aux = global_table;
     for (; aux->next; aux = aux->next)
-    {
-        if (aux->name && table->name && strcmp(table->name, aux->name) == 0)
-        {
-            // !: print error
-            return 1;
-        }
-    }
+        ;
 
     aux->next = table;
     //add function to global table
     insert_elem_func();
-    return 0;
 }
 int search_table(ast_node_t *node)
 {
@@ -86,6 +80,14 @@ int search_table(ast_node_t *node)
             }
         }
     }
+
+    print_ast_node_anottated(node, 2);
+
+    if (node->is_func)
+        print_cannot_find_symbol_func(node);
+    else
+        print_cannot_find_symbol(node->token);
+    node->type = strdup("undef");
     return 1;
 }
 
@@ -145,8 +147,16 @@ int insert_elem_var(int param, ast_node_t *node)
         {
             if (strcmp(aux->name, new_elem->name) == 0)
             {
-                return 1; //!error
+                //!erro
+                print_symbol_already_defined(node->fChild->nSibling->token);
+                return 1;
             }
+        }
+        if (strcmp(aux->name, new_elem->name) == 0)
+        {
+            //!erro
+            print_symbol_already_defined(node->fChild->nSibling->token);
+            return 1;
         }
         aux->next = new_elem;
     }
@@ -206,12 +216,11 @@ int create_symtab(ast_node_t *node)
         //create new table
         current_table = create_table(0);
         //ver func header para preencher o no da tabela
-        check_header(node->fChild);
-        if (add_table(current_table))
+        if (!check_header(node->fChild))
         {
-            //!erro se estiver repetid
+            add_table(current_table, node);
+            check_body(node->fChild->nSibling);
         }
-        check_body(node->fChild->nSibling);
         //add to table list
         //add func to global table
         //percorrer o func body e preencher os elems da tabela
@@ -219,12 +228,8 @@ int create_symtab(ast_node_t *node)
     }
     else if (!strcmp(node->node_name, "VarDecl"))
     {
-        //create new table elem
-        if (insert_elem_var(0, node))
-        {
-            //!deu erro
-        }
         //add to current table
+        insert_elem_var(0, node);
     }
     if (node->nSibling)
         create_symtab(node->nSibling);
@@ -281,4 +286,56 @@ void print_tables()
         print_table(aux);
         printf("\n");
     }
+}
+
+void print_symbol_already_defined(token_t token)
+{
+    printf("Line %d, column %d: Symbol %s already defined\n", token.n_line, token.n_col, token.text);
+    semantic_error = 1;
+}
+
+void print_cannot_find_symbol(token_t token)
+{
+    printf("Line %d, column %d: Cannot find symbol %s\n", token.n_line, token.n_col, token.text);
+    semantic_error = 1;
+}
+
+void print_cannot_find_symbol_func(ast_node_t *node)
+{
+    printf("Line %d, column %d: Cannot find symbol %s(", node->token.n_line, node->token.n_col, node->elem->name);
+    if (node->elem && node->elem->params)
+    {
+        param_t *param = node->elem->params;
+        for (; param->next; param = param->next)
+        {
+            printf("%s,", to_lower_case(param->type));
+        }
+
+        printf("%s", to_lower_case(param->type));
+    }
+    printf(")\n");
+    semantic_error = 1;
+}
+
+void print_cannot_be_applied_to_type(token_t token, char *type)
+{
+    printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", token.n_line, token.n_col, token.text, type);
+    semantic_error = 1;
+}
+
+void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB)
+{
+    printf("Line %d, column %d: Operator %s cannot be applied to types %s , %s\n", token.n_line, token.n_col, token.text, typeA, typeB);
+    semantic_error = 1;
+}
+void print_incompatible_type(token_t token, char *type)
+{
+    printf("Line %d, column %d: Incompatible type %s in %s statement\n", token.n_line, token.n_col, type, token.text);
+    semantic_error = 1;
+}
+
+void print_symbol_declared_but_never_used(token_t token)
+{
+    printf("Line %d, column %d: Symbol %s declared but never used\n", token.n_line, token.n_col, token.text);
+    semantic_error = 1;
 }

@@ -8,9 +8,18 @@ void print_tables();
 int create_symtab(ast_node_t *node);
 int insert_elem_func();
 int search_table();
-int add_table(table_t *table);
+void add_table(table_t *table, ast_node_t *node);
 table_t *create_table(int global);
 void print_table(table_t *table);
 table_elem_t *create_return_elem();
 int insert_elem_var(int param, ast_node_t *node);
+
+void print_symbol_already_defined(token_t token);
+void print_cannot_find_symbol(token_t token);
+void print_cannot_find_symbol_func(ast_node_t *node);
+void print_cannot_be_applied_to_type(token_t token, char *type);
+void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB);
+void print_incompatible_type(token_t token, char *type);
+void print_symbol_declared_but_never_used(token_t token);
+
 #endif

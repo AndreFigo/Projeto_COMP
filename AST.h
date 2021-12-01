@@ -17,6 +17,8 @@ void free_ast(ast_node_t *node);
 
 void print_ast_node(char *node_name, token_t tok, int depth);
 
+void print_ast_node_anottated(ast_node_t *node, int depth);
+
 void print_ast(ast_node_t *node, int depth);
 
 void print_program(ast_node_t *program);
