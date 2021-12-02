@@ -84,10 +84,10 @@ CommaId:            COMMA ID CommaId                                            
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Type:               INT                                                                         {$$= create_node("Int", null_token); }
-            |       FLOAT32                                                                     {$$= create_node("Float32", null_token);}
-            |       BOOL                                                                        {$$= create_node("Bool", null_token);}
-            |       STRING                                                                      {$$= create_node("String", null_token);}
+Type:               INT                                                                         {$$= create_node("Int", $1); }
+            |       FLOAT32                                                                     {$$= create_node("Float32", $1);}
+            |       BOOL                                                                        {$$= create_node("Bool", $1);}
+            |       STRING                                                                      {$$= create_node("String", $1);}
             ;
   
 FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {$$= create_node("FuncDecl", null_token);
@@ -126,7 +126,7 @@ VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                      
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Statement:          ID ASSIGN Expr                                                              {$$=create_node("Assign", null_token);
+Statement:          ID ASSIGN Expr                                                              {$$=create_node("Assign", $2);
                                                                                                     add_children($$, 2, create_node("Id",$1), $3);
                                                                                                 }
 
@@ -138,42 +138,42 @@ Statement:          ID ASSIGN Expr                                              
                                                                                                     }
                                                                                                 }
 
-            |       IF Expr LBRACE StatementSemicolon RBRACE ELSE LBRACE StatementSemicolon RBRACE              {$$=create_node("If", null_token);
+            |       IF Expr LBRACE StatementSemicolon RBRACE ELSE LBRACE StatementSemicolon RBRACE              {$$=create_node("If", $1);
                                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                                     add_children(aux_node, 1, $4);
                                                                                                                     aux_node2 = create_node("Block", null_token);
                                                                                                                     add_children(aux_node2, 1, $8);
                                                                                                                     add_children($$, 3, $2, aux_node, aux_node2);
                                                                                                                 }
-            |       IF Expr LBRACE StatementSemicolon RBRACE                                    {$$=create_node("If", null_token);
+            |       IF Expr LBRACE StatementSemicolon RBRACE                                    {$$=create_node("If", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $4);
                                                                                                     aux_node2 = create_node("Block", null_token);
                                                                                                     add_children($$, 3, $2, aux_node, aux_node2);}
 
-            |       FOR Expr LBRACE StatementSemicolon RBRACE                                   {$$=create_node("For", null_token);
+            |       FOR Expr LBRACE StatementSemicolon RBRACE                                   {$$=create_node("For", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $4);
                                                                                                     add_children($$, 2, $2, aux_node);
                                                                                                 }
-            |       FOR LBRACE StatementSemicolon RBRACE                                        {$$=create_node("For", null_token);
+            |       FOR LBRACE StatementSemicolon RBRACE                                        {$$=create_node("For", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $3);
                                                                                                     add_children($$, 1, aux_node);
                                                                                                 }
 
-            |       RETURN Expr                                                                 {$$ = create_node("Return", null_token);
+            |       RETURN Expr                                                                 {$$ = create_node("Return", $1);
                                                                                                     add_children($$, 1, $2);
                                                                                                 }
-            |       RETURN                                                                      {$$ =  create_node("Return", null_token);}
+            |       RETURN                                                                      {$$ =  create_node("Return", $1);}
 
             |       FuncInvocation                                                              {$$=$1;}
             |       ParseArgs                                                                   {$$=$1;}
 
-            |       PRINT LPAR Expr RPAR                                                        {$$ = create_node("Print", null_token);
+            |       PRINT LPAR Expr RPAR                                                        {$$ = create_node("Print", $1);
                                                                                                     add_children($$, 1, $3);
                                                                                                 }
-            |       PRINT LPAR STRLIT RPAR                                                      {$$ = create_node("Print", null_token);
+            |       PRINT LPAR STRLIT RPAR                                                      {$$ = create_node("Print", $1);
                                                                                                     add_children($$, 1, create_node("StrLit", $3));
                                                                                                 }
 
@@ -187,7 +187,7 @@ StatementSemicolon: Statement SEMICOLON StatementSemicolon                      
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
             
-ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {$$=create_node("ParseArgs", null_token);
+ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {$$=create_node("ParseArgs", $5);
                                                                                                     add_children($$, 2, create_node("Id", $1),$9);
                                                                                                 }
             |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);free($1.text);}
@@ -206,55 +206,55 @@ CommaExpr:          COMMA Expr CommaExpr                                        
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
-Expr:               Expr OR  Expr                                                               {$$ = create_node("Or", null_token);
+Expr:               Expr OR  Expr                                                               {$$ = create_node("Or", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr AND Expr                                                               {$$ = create_node("And", null_token);
+            |       Expr AND Expr                                                               {$$ = create_node("And", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
             
-            |       Expr LT Expr                                                                {$$ = create_node("Lt", null_token);
+            |       Expr LT Expr                                                                {$$ = create_node("Lt", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr GT Expr                                                                {$$ = create_node("Gt", null_token);
+            |       Expr GT Expr                                                                {$$ = create_node("Gt", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr EQ Expr                                                                {$$ = create_node("Eq", null_token);
+            |       Expr EQ Expr                                                                {$$ = create_node("Eq", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr NE Expr                                                                {$$ = create_node("Ne", null_token);
+            |       Expr NE Expr                                                                {$$ = create_node("Ne", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr LE Expr                                                                {$$ = create_node("Le", null_token);
+            |       Expr LE Expr                                                                {$$ = create_node("Le", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
-            |       Expr GE Expr                                                                {$$ = create_node("Ge", null_token);
-                                                                                                    add_children($$, 2, $1, $3);
-                                                                                                }
-
-            |       Expr PLUS Expr                                                              {$$ = create_node("Add", null_token);
-                                                                                                    add_children($$, 2, $1, $3);
-                                                                                                }
-            |       Expr MINUS Expr                                                             {$$ = create_node("Sub", null_token);
-                                                                                                    add_children($$, 2, $1, $3);
-                                                                                                }
-            |       Expr STAR Expr                                                              {$$ = create_node("Mul", null_token);
-                                                                                                    add_children($$, 2, $1, $3);
-                                                                                                }
-            |       Expr DIV Expr                                                               {$$ = create_node("Div", null_token);
-                                                                                                    add_children($$, 2, $1, $3);
-                                                                                                }
-            |       Expr MOD Expr                                                               {$$ = create_node("Mod", null_token);
+            |       Expr GE Expr                                                                {$$ = create_node("Ge", $2);
                                                                                                     add_children($$, 2, $1, $3);
                                                                                                 }
 
-            |       NOT Expr                                                                    {$$ = create_node("Not", null_token);
+            |       Expr PLUS Expr                                                              {$$ = create_node("Add", $2);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr MINUS Expr                                                             {$$ = create_node("Sub", $2);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr STAR Expr                                                              {$$ = create_node("Mul", $2);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr DIV Expr                                                               {$$ = create_node("Div", $2);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+            |       Expr MOD Expr                                                               {$$ = create_node("Mod", $2);
+                                                                                                    add_children($$, 2, $1, $3);
+                                                                                                }
+
+            |       NOT Expr                                                                    {$$ = create_node("Not", $1);
                                                                                                     add_children($$, 1, $2);
                                                                                                 }
-            |       MINUS Expr             %prec UNARY                                          {$$ = create_node("Minus", null_token);
+            |       MINUS Expr             %prec UNARY                                          {$$ = create_node("Minus", $1);
                                                                                                     add_children($$, 1, $2);
                                                                                                 }
-            |       PLUS Expr            %prec UNARY                                            {$$ = create_node("Plus", null_token);
+            |       PLUS Expr            %prec UNARY                                            {$$ = create_node("Plus", $1);
                                                                                                     add_children($$, 1, $2);
                                                                                                 }
             
@@ -306,15 +306,18 @@ int main(int argc, char *argv[]) {
             print_tables();
             print_program(program);
         }
-        if (program  && !lexical_error)
+        if (program  && !lexical_error){
+
             free_ast(program);
+        }
     }
     else if(t_flag){
         if (yyparse()){         //error
             syntax_error=1;
         }
         print_program(program);
-        free_ast(program);
+        if (program  && !lexical_error)
+            free_ast(program);
 
     }
     else{

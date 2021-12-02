@@ -34,14 +34,14 @@ void add_table(table_t *table, ast_node_t *node)
         ;
 
     aux->next = table;
-    //add function to global table
+    // add function to global table
     insert_elem_func();
 }
 int search_table(ast_node_t *node)
 {
 
     // 1 = error and 0 = valid
-    //search current
+    // search current
     if (current_table->first != NULL)
     {
         table_elem_t *aux = current_table->first;
@@ -60,7 +60,7 @@ int search_table(ast_node_t *node)
             }
         }
     }
-    //then search global
+    // then search global
     if (global_table->first != NULL)
     {
         table_elem_t *aux = global_table->first;
@@ -81,10 +81,8 @@ int search_table(ast_node_t *node)
         }
     }
 
-    print_ast_node_anottated(node, 2);
-
     if (node->is_func)
-        print_cannot_find_symbol_func(node);
+        print_cannot_find_symbol_func(node, node->nSibling);
     else
         print_cannot_find_symbol(node->token);
     node->type = strdup("undef");
@@ -138,6 +136,8 @@ int insert_elem_var(int param, ast_node_t *node)
     new_elem->next = NULL;
     new_elem->params = NULL;
 
+    int erro = 0;
+
     table_elem_t *aux = current_table->first;
     if (aux == NULL)
         current_table->first = new_elem;
@@ -147,18 +147,23 @@ int insert_elem_var(int param, ast_node_t *node)
         {
             if (strcmp(aux->name, new_elem->name) == 0)
             {
-                //!erro
+                //! erro
                 print_symbol_already_defined(node->fChild->nSibling->token);
-                return 1;
+                if (!param)
+                    return 1;
+                erro = 1;
             }
         }
         if (strcmp(aux->name, new_elem->name) == 0)
         {
-            //!erro
+            //! erro
             print_symbol_already_defined(node->fChild->nSibling->token);
-            return 1;
+            if (!param)
+                return 1;
+            erro = 1;
         }
-        aux->next = new_elem;
+        if (!erro)
+            aux->next = new_elem;
     }
     if (param)
     {
@@ -205,30 +210,30 @@ int create_symtab(ast_node_t *node)
 {
     if (!strcmp(node->node_name, "Program"))
     {
-        //cria table global
-        //ver os filhos e adicionar na tabela
+        // cria table global
+        // ver os filhos e adicionar na tabela
         global_table = current_table = create_table(1);
         if (node->fChild)
             create_symtab(node->fChild);
     }
     else if (!strcmp(node->node_name, "FuncDecl"))
     {
-        //create new table
+        // create new table
         current_table = create_table(0);
-        //ver func header para preencher o no da tabela
+        // ver func header para preencher o no da tabela
         if (!check_header(node->fChild))
         {
             add_table(current_table, node);
             check_body(node->fChild->nSibling);
         }
-        //add to table list
-        //add func to global table
-        //percorrer o func body e preencher os elems da tabela
+        // add to table list
+        // add func to global table
+        // percorrer o func body e preencher os elems da tabela
         current_table = global_table;
     }
     else if (!strcmp(node->node_name, "VarDecl"))
     {
-        //add to current table
+        // add to current table
         insert_elem_var(0, node);
     }
     if (node->nSibling)
@@ -300,18 +305,22 @@ void print_cannot_find_symbol(token_t token)
     semantic_error = 1;
 }
 
-void print_cannot_find_symbol_func(ast_node_t *node)
+void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes)
 {
-    printf("Line %d, column %d: Cannot find symbol %s(", node->token.n_line, node->token.n_col, node->elem->name);
-    if (node->elem && node->elem->params)
+    // TODO: REVIEW THIS
+    printf("Line %d, column %d: Cannot find symbol %s(", node->token.n_line, node->token.n_col, node->token.text);
+    if (node)
     {
-        param_t *param = node->elem->params;
-        for (; param->next; param = param->next)
+        ast_node_t *param = params_nodes;
+        if (param)
         {
-            printf("%s,", to_lower_case(param->type));
-        }
+            for (; param->nSibling; param = param->nSibling)
+            {
+                printf("%s,", to_lower_case(param->type));
+            }
 
-        printf("%s", to_lower_case(param->type));
+            printf("%s", to_lower_case(param->type));
+        }
     }
     printf(")\n");
     semantic_error = 1;

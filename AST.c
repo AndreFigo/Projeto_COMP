@@ -23,7 +23,7 @@ ast_node_t *create_node(char *node_name, token_t token)
 
 void add_children(ast_node_t *parent, int n_children, ...)
 {
-    //printf("5\n");
+    // printf("5\n");
     if (n_children < 0)
         return;
 
@@ -45,13 +45,13 @@ void add_children(ast_node_t *parent, int n_children, ...)
         }
     }
     va_end(args);
-    //printf("6\n");
+    // printf("6\n");
 }
 
 ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
 {
 
-    //printf("3\n");
+    // printf("3\n");
     if (n_siblings < 0)
         return first;
 
@@ -83,7 +83,7 @@ ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
 
     va_end(args);
     return first;
-    //printf("4\n");
+    // printf("4\n");
 }
 
 // ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
@@ -116,12 +116,12 @@ ast_node_t *add_siblings(ast_node_t *first, int n_siblings, ...)
 
 ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
 {
-    //printf("1\n");
+    // printf("1\n");
     if (node == NULL)
         return NULL;
 
     int n_vars = 0;
-    ast_node_t *current = node, *first = NULL, *name, *vars = node, *new_id;
+    ast_node_t *current = node, *first = NULL, *type, *vars = node, *new_id;
 
     while (current->nSibling != NULL)
     {
@@ -142,12 +142,13 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
             current->nSibling = create_node("VarDecl", vardecl_tok);
             current = current->nSibling;
         }
-        name = create_node(node->node_name, node->token);
-        current->fChild = name;
+        type = create_node(node->node_name, node->token);
+        type->token.text = strdup(type->token.text);
+        current->fChild = type;
         new_id = create_node("Id", vars->token);
         add_siblings(current->fChild, 1, new_id);
     }
-    //printf("2\n");
+    // printf("2\n");
 
     return first;
 }
@@ -168,7 +169,7 @@ void print_ast_node(char *node_name, token_t tok, int depth)
     for (int i = 0; i < depth; i++)
         printf("..");
     printf("%s", node_name);
-    if (tok.text != NULL)
+    if (!strcmp(node_name, "StrLit") || !strcmp(node_name, "RealLit") || !strcmp(node_name, "IntLit") || !strcmp(node_name, "Id"))
         printf("(%s)", tok.text);
     printf("\n");
 }
@@ -178,7 +179,7 @@ void print_ast_node_anottated(ast_node_t *node, int depth)
     for (int i = 0; i < depth; i++)
         printf("..");
     printf("%s", node->node_name);
-    if (node->token.text != NULL)
+    if (!strcmp(node->node_name, "StrLit") || !strcmp(node->node_name, "RealLit") || !strcmp(node->node_name, "IntLit") || !strcmp(node->node_name, "Id"))
         printf("(%s)", node->token.text);
 
     if (node->is_func)
@@ -218,7 +219,7 @@ void print_ast(ast_node_t *node, int depth)
 
 void print_program(ast_node_t *program)
 {
-    //if (program != NULL)
+    // if (program != NULL)
     if (syntax_error == 0 && lexical_error == 0 && program != NULL)
         print_ast(program, 0);
 }

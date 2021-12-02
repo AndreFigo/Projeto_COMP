@@ -16,7 +16,7 @@ int insert_elem_var(int param, ast_node_t *node);
 
 void print_symbol_already_defined(token_t token);
 void print_cannot_find_symbol(token_t token);
-void print_cannot_find_symbol_func(ast_node_t *node);
+void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes);
 void print_cannot_be_applied_to_type(token_t token, char *type);
 void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB);
 void print_incompatible_type(token_t token, char *type);
