@@ -9,26 +9,31 @@ int check_header(ast_node_t *header)
 
     ast_node_t *current_node = header->fChild;
 
-    current_table->name = strdup(current_node->token.text);
-
+    table_elem_t *aux = global_table->first;
     // add table to list
     //?????????? TO REVIEW ??????????????
-    table_t *aux = global_table;
-    for (; aux->next; aux = aux->next)
+    if (aux)
     {
-        if (aux->name && current_table->name && strcmp(current_table->name, aux->name) == 0)
+
+        for (; aux->next; aux = aux->next)
+        {
+            if (aux->name && current_node->token.text && strcmp(current_node->token.text, aux->name) == 0)
+            {
+                // !print error
+                print_symbol_already_defined(header->fChild->token);
+                header->type = strdup("undef");
+                return 1;
+            }
+        }
+        if (aux->name && current_node->token.text && strcmp(current_node->token.text, aux->name) == 0)
         {
             // !print error
             print_symbol_already_defined(header->fChild->token);
+            header->type = strdup("undef");
             return 1;
         }
     }
-    if (aux->name && current_table->name && strcmp(current_table->name, aux->name) == 0)
-    {
-        // !print error
-        print_symbol_already_defined(header->fChild->token);
-        return 1;
-    }
+    current_table->name = strdup(current_node->token.text);
 
     current_node = current_node->nSibling;
     if (strcmp(current_node->node_name, "FuncParams"))
@@ -61,18 +66,32 @@ int check_call(ast_node_t *node)
     ast_node_t *params = id_node->nSibling; // params to search on table
     int params_given = 0, params_needed = 0;
 
-    printf("id node %s %s\n", id_node->token.text, id_node->type);
-    if (!strcmp(id_node->type, "undef"))
+    // printf("%s\n", node->node_name);
+    // printf("%s\n", left_node->type);
+    // printf("%s\n", right_node->type);
+    // printf("9\n");
+
+    // printf("id node %s %s\n", id_node->token.text, id_node->type);
+    if (id_node->not_found)
     {
+        // printf("8\n");
         print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferente numero
         node->type = strdup("undef");
         return 1;
     }
 
     if (!id_node->is_func)
-        return 1;
+    {
 
-    // check params (childs) in the AST
+        //! might be an error to print
+        print_cannot_find_symbol_func(id_node, id_node->nSibling);
+        free(node->type);
+        node->type = strdup("undef");
+        return 1;
+    }
+
+    // printf("7\n");
+    //  check params (childs) in the AST
     for (; params; params = params->nSibling)
         params_given++;
 
@@ -80,9 +99,13 @@ int check_call(ast_node_t *node)
     for (param_t *aux = id_node->elem->params; aux; aux = aux->next)
         params_needed++;
 
+    // printf("10\n");
+
     if (params_given != params_needed)
     {
         //! erro
+        // printf("11\n");
+
         print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferente numero
         id_node->type = strdup("undef");
         node->type = strdup("undef");
@@ -91,13 +114,20 @@ int check_call(ast_node_t *node)
     }
     else
     {
+        // printf("12\n");
+
         // if the params number are equal, checks if they have the same type
         param_t *aux = id_node->elem->params;
         params = id_node->nSibling;
+        // printf("13\n");
+
         while (params)
         {
+            // printf("14\n");
+
             if (strcmp(params->type, aux->type)) // or one is undef?
             {
+                // printf("15\n");
                 //! erro
                 print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferentes tipos de dados
                 id_node->type = strdup("undef");
@@ -106,10 +136,12 @@ int check_call(ast_node_t *node)
             }
             params = params->nSibling;
             aux = aux->next;
+            // printf("16\n");
         }
     }
-    if (strcmp(id_node->type, "none")) // ???? REVIEW
-        node->type = strdup(id_node->type);
+    // printf("13\n");
+
+    node->type = strdup(id_node->type);
     return 0;
 }
 
@@ -118,18 +150,44 @@ int check_logical_operators(ast_node_t *node)
     ast_node_t *left_node = node->fChild;         // id name
     ast_node_t *right_node = left_node->nSibling; // expression
 
+    if (left_node->not_found)
+    {
+        print_cannot_find_symbol(left_node->token);
+    }
+    if (right_node->not_found)
+    {
+        print_cannot_find_symbol(right_node->token);
+    }
+
+    if (left_node->is_func)
+    {
+        free(left_node->type);
+        print_cannot_find_symbol(left_node->token);
+        left_node->type = strdup("undef");
+    }
+    if (right_node->is_func)
+    {
+        free(right_node->type);
+        right_node->type = strdup("undef");
+        print_cannot_find_symbol(right_node->token);
+    }
+
     if ((!strcmp(node->node_name, "And") || !strcmp(node->node_name, "Or")) && (strcmp(left_node->type, right_node->type) || strcmp(left_node->type, "Bool")))
     {
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
-        node->type = strdup("undef");
+        // node->type = strdup("undef");
+        node->type = strdup("Bool");
+
         return 1;
     }
     else if ((!strcmp(node->node_name, "Eq") || !strcmp(node->node_name, "Ne")) && ((strcmp(left_node->type, right_node->type)) || !strcmp(left_node->type, "undef") || !strcmp(left_node->type, "none")))
     {
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
-        node->type = strdup("undef");
+        // node->type = strdup("undef");
+        node->type = strdup("Bool");
+
         return 1;
     }
     else if (
@@ -138,7 +196,9 @@ int check_logical_operators(ast_node_t *node)
     {
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
-        node->type = strdup("undef");
+        // node->type = strdup("undef");
+        node->type = strdup("Bool");
+
         return 1;
     }
     node->type = strdup("Bool");
@@ -152,6 +212,29 @@ int check_arithmetic_operators(ast_node_t *node)
     ast_node_t *right_node = left_node->nSibling; // expression
     // add - tudo excepto none e undef
     // mul, div, mod, sub  - tudo excepto none, string, undef
+
+    if (left_node->not_found)
+    {
+        print_cannot_find_symbol(left_node->token);
+    }
+    if (right_node->not_found)
+    {
+        print_cannot_find_symbol(right_node->token);
+    }
+
+    if (left_node->is_func)
+    {
+        free(left_node->type);
+        left_node->type = strdup("undef");
+        print_cannot_find_symbol(left_node->token);
+    }
+    if (right_node->is_func)
+    {
+        free(right_node->type);
+        right_node->type = strdup("undef");
+        print_cannot_find_symbol(right_node->token);
+    }
+
     // printf("%s\n", node->node_name);
     // printf("7\n");
     // printf("%s\n", left_node->type);
@@ -184,11 +267,23 @@ int check_arithmetic_operators(ast_node_t *node)
 int check_unary_operator(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild; // id name
+
+    if (child_node->not_found)
+    {
+        print_cannot_find_symbol(child_node->token);
+    }
+    if (child_node->is_func)
+    {
+        free(child_node->type);
+        child_node->type = strdup("undef");
+        print_cannot_find_symbol(child_node->token);
+    }
+
     if (!strcmp(node->node_name, "Not") && strcmp(child_node->type, "Bool"))
     {
         //! erro
         print_cannot_be_applied_to_type(node->token, child_node->type);
-        node->type = strdup("undef");
+        node->type = strdup("Bool");
         return 1;
     }
     else if ((!strcmp(node->node_name, "Plus") || !strcmp(node->node_name, "Minus")) && strcmp(child_node->type, "Int") && strcmp(child_node->type, "Float32"))
@@ -205,6 +300,29 @@ int check_parse_args(ast_node_t *node)
 {
     ast_node_t *left_node = node->fChild;         // id name
     ast_node_t *right_node = left_node->nSibling; // expression
+
+    if (left_node->not_found)
+    {
+        print_cannot_find_symbol(left_node->token);
+    }
+    if (right_node->not_found)
+    {
+        print_cannot_find_symbol(right_node->token);
+    }
+
+    if (left_node->is_func)
+    {
+        free(left_node->type);
+        left_node->type = strdup("undef");
+        print_cannot_find_symbol(left_node->token);
+    }
+    if (right_node->is_func)
+    {
+        free(right_node->type);
+        right_node->type = strdup("undef");
+        print_cannot_find_symbol(right_node->token);
+    }
+
     if (strcmp(left_node->type, "Int") || strcmp(right_node->type, "Int"))
     {
         //! erro invalid type
@@ -224,6 +342,27 @@ int check_assign(ast_node_t *node)
     if (id_node == NULL || expr_node == NULL)
     {
         return 1;
+    }
+
+    if (id_node->not_found)
+    {
+        print_cannot_find_symbol(id_node->token);
+    }
+    if (expr_node->not_found)
+    {
+        print_cannot_find_symbol(expr_node->token);
+    }
+    if (id_node->is_func)
+    {
+        free(id_node->type);
+        id_node->type = strdup("undef");
+        print_cannot_find_symbol(id_node->token);
+    }
+    if (expr_node->is_func)
+    {
+        free(expr_node->type);
+        expr_node->type = strdup("undef");
+        print_cannot_find_symbol(expr_node->token);
     }
 
     if (id_node->is_func)
@@ -248,16 +387,38 @@ int check_statements(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild;
 
-    if ((!strcmp(node->node_name, "For") || !strcmp(node->node_name, "If")) && strcmp(child_node->type, "Bool"))
+    if (child_node && child_node->not_found)
     {
+        print_cannot_find_symbol(child_node->token);
+    }
+
+    if (child_node && child_node->is_func)
+    {
+        free(child_node->type);
+        child_node->type = strdup("undef");
+        print_cannot_find_symbol(child_node->token);
+    }
+
+    if ((!strcmp(node->node_name, "For")) && strcmp(child_node->node_name, "Block") && strcmp(child_node->type, "Bool"))
+    {
+        // printf("9\n");
         // !erro
-        print_incompatible_type(node->token, child_node->type);
+        print_incompatible_type(node->token, child_node->token, child_node->type);
+        return 1;
+    }
+
+    else if ((!strcmp(node->node_name, "If")) && strcmp(child_node->type, "Bool"))
+    {
+        // printf("3\n");
+        // !erro
+        print_incompatible_type(node->token, child_node->token, child_node->type);
         return 1;
     }
     else if (!strcmp(node->node_name, "Print") && (!strcmp(child_node->type, "undef")))
     {
+        // printf("2\n");
         // !erro
-        print_incompatible_type(node->token, child_node->type);
+        print_incompatible_type(node->token, child_node->fChild->token, child_node->type);
         return 1;
     }
     else if (!strcmp(node->node_name, "Return"))
@@ -265,19 +426,22 @@ int check_statements(ast_node_t *node)
         if (child_node == NULL && strcmp(current_table->return_type, "none"))
         {
 
-            print_incompatible_type(node->token, "none");
+            print_incompatible_type(node->token, node->token, "none");
             return 1;
         }
         else if (child_node != NULL && strcmp(current_table->return_type, child_node->type))
         {
-            print_incompatible_type(node->token, child_node->type);
+
+            print_incompatible_type(node->token, child_node->token, child_node->type);
             return 1;
         }
     }
+    // printf("5\n");
+
     return 0;
 }
 
-int check_body(ast_node_t *node)
+void check_body(ast_node_t *node)
 {
     if (!strcmp(node->node_name, "FuncBody"))
     {

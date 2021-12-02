@@ -29,13 +29,16 @@ table_t *create_table(int global)
 void add_table(table_t *table, ast_node_t *node)
 {
     // add table to list
-    table_t *aux = global_table;
-    for (; aux->next; aux = aux->next)
-        ;
-
-    aux->next = table;
     // add function to global table
-    insert_elem_func();
+    if (!insert_elem_func())
+    {
+
+        table_t *aux = global_table;
+        for (; aux->next; aux = aux->next)
+            ;
+
+        aux->next = table;
+    }
 }
 int search_table(ast_node_t *node)
 {
@@ -81,12 +84,39 @@ int search_table(ast_node_t *node)
         }
     }
 
-    if (node->is_func)
-        print_cannot_find_symbol_func(node, node->nSibling);
-    else
-        print_cannot_find_symbol(node->token);
     node->type = strdup("undef");
+    node->not_found = 1;
     return 1;
+}
+
+table_t *find_table(ast_node_t *func_header)
+{
+
+    table_t *aux = global_table->next;
+
+    for (; aux; aux = aux->next)
+    {
+        if (!strcmp(aux->name, func_header->fChild->token.text))
+        {
+            return aux;
+        }
+    }
+    return NULL;
+}
+
+void find_unused(table_t *table)
+{
+
+    for (; table; table = table->next)
+    {
+        for (table_elem_t *elem = table->first; elem; elem = elem->next)
+        {
+            if (!elem->is_param && !elem->is_used && strcmp(elem->name, "return"))
+            {
+                print_symbol_declared_but_never_used(elem->line, elem->col, elem->name);
+            }
+        }
+    }
 }
 
 int insert_elem_func()
@@ -104,6 +134,8 @@ int insert_elem_func()
     new_elem->name = current_table->name;
     new_elem->next = NULL;
     new_elem->params = current_table->params;
+    new_elem->col = 0;
+    new_elem->line = 0;
 
     // !not a copy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (!global_table->first)
@@ -112,7 +144,13 @@ int insert_elem_func()
     {
         table_elem_t *aux;
         for (aux = global_table->first; aux->next; aux = aux->next)
-            ;
+        {
+            if (!strcmp(new_elem->name, aux->name))
+            {
+                return 1;
+            }
+        }
+
         aux->next = new_elem;
     }
 
@@ -135,6 +173,8 @@ int insert_elem_var(int param, ast_node_t *node)
     new_elem->name = strdup(node->fChild->nSibling->token.text);
     new_elem->next = NULL;
     new_elem->params = NULL;
+    new_elem->col = node->fChild->nSibling->token.n_col;
+    new_elem->line = node->fChild->nSibling->token.n_line;
 
     int erro = 0;
 
@@ -206,7 +246,7 @@ table_elem_t *create_return_elem()
     return new_elem;
 }
 
-int create_symtab(ast_node_t *node)
+void create_symtab(ast_node_t *node)
 {
     if (!strcmp(node->node_name, "Program"))
     {
@@ -223,8 +263,8 @@ int create_symtab(ast_node_t *node)
         // ver func header para preencher o no da tabela
         if (!check_header(node->fChild))
         {
+
             add_table(current_table, node);
-            check_body(node->fChild->nSibling);
         }
         // add to table list
         // add func to global table
@@ -238,6 +278,39 @@ int create_symtab(ast_node_t *node)
     }
     if (node->nSibling)
         create_symtab(node->nSibling);
+}
+
+void check_symtab(ast_node_t *node)
+{
+
+    if (!strcmp(node->node_name, "Program"))
+    {
+        // cria table global
+        // ver os filhos
+        if (node->fChild)
+            check_symtab(node->fChild);
+    }
+    else if (!strcmp(node->node_name, "FuncDecl"))
+    {
+        // create new table
+
+        if (node->fChild->type == NULL)
+        {
+
+            current_table = find_table(node->fChild);
+            // ver func header para preencher o no da tabela
+
+            if (current_table)
+                check_body(node->fChild->nSibling);
+            // add to table list
+            // add func to global table
+            // percorrer o func body e preencher os elems da tabela
+            current_table = global_table;
+        }
+    }
+
+    if (node->nSibling)
+        check_symtab(node->nSibling);
 }
 
 void print_table(table_t *table)
@@ -279,6 +352,7 @@ void print_table(table_t *table)
         printf("\t%s", to_lower_case(elem->type));
         if (elem->is_param)
             printf("\tparam");
+
         printf("\n");
     }
 }
@@ -328,23 +402,23 @@ void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes)
 
 void print_cannot_be_applied_to_type(token_t token, char *type)
 {
-    printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", token.n_line, token.n_col, token.text, type);
+    printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", token.n_line, token.n_col, token.text, to_lower_case(type));
     semantic_error = 1;
 }
 
 void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB)
 {
-    printf("Line %d, column %d: Operator %s cannot be applied to types %s , %s\n", token.n_line, token.n_col, token.text, typeA, typeB);
+    printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", token.n_line, token.n_col, token.text, to_lower_case(typeA), to_lower_case(typeB));
     semantic_error = 1;
 }
-void print_incompatible_type(token_t token, char *type)
+void print_incompatible_type(token_t token, token_t child_token, char *type)
 {
-    printf("Line %d, column %d: Incompatible type %s in %s statement\n", token.n_line, token.n_col, type, token.text);
+    printf("Line %d, column %d: Incompatible type %s in %s statement\n", child_token.n_line, child_token.n_col, to_lower_case(type), token.text);
     semantic_error = 1;
 }
 
-void print_symbol_declared_but_never_used(token_t token)
+void print_symbol_declared_but_never_used(int line, int col, char *var)
 {
-    printf("Line %d, column %d: Symbol %s declared but never used\n", token.n_line, token.n_col, token.text);
+    printf("Line %d, column %d: Symbol %s declared but never used\n", line, col, var);
     semantic_error = 1;
 }

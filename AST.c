@@ -15,6 +15,7 @@ ast_node_t *create_node(char *node_name, token_t token)
     new_node->nSibling = NULL;
     new_node->fChild = NULL;
     new_node->is_func = 0;
+    new_node->not_found = 0;
     new_node->type = NULL;
     new_node->elem = NULL;
 
@@ -197,7 +198,7 @@ void print_ast_node_anottated(ast_node_t *node, int depth)
         }
         printf(")");
     }
-    else if (node->type)
+    else if (node->type && strcmp(node->type, "none"))
     {
         printf(" - %s", to_lower_case(node->type));
     }

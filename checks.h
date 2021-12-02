@@ -5,6 +5,6 @@
 #include "structures.h"
 
 int check_header(ast_node_t *header);
-int check_body(ast_node_t *node);
+void check_body(ast_node_t *node);
 int check_call(ast_node_t *node);
 #endif

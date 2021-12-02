@@ -24,6 +24,8 @@ struct table_elem
     int is_param;
     int is_func;
     int is_used;
+    int line;
+    int col;
 
     table_elem_t *next;
 };
@@ -45,6 +47,7 @@ typedef struct ast_node ast_node_t;
 struct ast_node
 {
     char *node_name;
+    int not_found;
     char *type;
     int is_func;
     table_elem_t *elem;

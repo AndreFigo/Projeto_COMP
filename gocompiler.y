@@ -301,6 +301,7 @@ int main(int argc, char *argv[]) {
         
         if(!syntax_error && !lexical_error){
             create_symtab(program);
+            check_symtab(program);
             if(semantic_error)
                 printf("\n");
             print_tables();
@@ -324,8 +325,13 @@ int main(int argc, char *argv[]) {
         if (yyparse()){         //error
             syntax_error=1;
         }
-        if(!syntax_error && !lexical_error)
-            create_symtab(program);    
+        if(!syntax_error && !lexical_error){
+            create_symtab(program);     
+
+            check_symtab(program);
+            find_unused(global_table->next);
+
+        }
         
         if (program  && !lexical_error)
             free_ast(program);
