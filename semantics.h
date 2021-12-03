@@ -15,7 +15,7 @@ table_t *create_table(int global);
 void print_table(table_t *table);
 table_elem_t *create_return_elem();
 int insert_elem_var(int param, ast_node_t *node);
-
+void free_tables(table_t *table);
 void print_symbol_already_defined(token_t token);
 void print_cannot_find_symbol(token_t token);
 void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes);

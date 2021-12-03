@@ -21,6 +21,9 @@ int check_header(ast_node_t *header)
             {
                 // !print error
                 print_symbol_already_defined(header->fChild->token);
+
+                if (header->type)
+                    free(header->type);
                 header->type = strdup("undef");
                 return 1;
             }
@@ -29,15 +32,21 @@ int check_header(ast_node_t *header)
         {
             // !print error
             print_symbol_already_defined(header->fChild->token);
+            if (header->type)
+                free(header->type);
             header->type = strdup("undef");
             return 1;
         }
     }
+    if (current_table->name)
+        free(current_table->name);
     current_table->name = strdup(current_node->token.text);
 
     current_node = current_node->nSibling;
     if (strcmp(current_node->node_name, "FuncParams"))
     {
+        if (current_table->return_type)
+            free(current_table->return_type);
         current_table->return_type = strdup(current_node->node_name);
         current_node = current_node->nSibling;
     }
@@ -72,20 +81,12 @@ int check_call(ast_node_t *node)
     // printf("9\n");
 
     // printf("id node %s %s\n", id_node->token.text, id_node->type);
-    if (id_node->not_found)
+    if (id_node->not_found || !id_node->is_func)
     {
         // printf("8\n");
         print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferente numero
-        node->type = strdup("undef");
-        return 1;
-    }
-
-    if (!id_node->is_func)
-    {
-
-        //! might be an error to print
-        print_cannot_find_symbol_func(id_node, id_node->nSibling);
-        free(node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
@@ -107,7 +108,11 @@ int check_call(ast_node_t *node)
         // printf("11\n");
 
         print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferente numero
+        if (id_node->type)
+            free(id_node->type);
         id_node->type = strdup("undef");
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
 
         return 1;
@@ -130,7 +135,11 @@ int check_call(ast_node_t *node)
                 // printf("15\n");
                 //! erro
                 print_cannot_find_symbol_func(id_node, id_node->nSibling); // diferentes tipos de dados
+                if (id_node->type)
+                    free(id_node->type);
                 id_node->type = strdup("undef");
+                if (node->type)
+                    free(node->type);
                 node->type = strdup("undef");
                 return 1;
             }
@@ -140,7 +149,8 @@ int check_call(ast_node_t *node)
         }
     }
     // printf("13\n");
-
+    if (node->type)
+        free(node->type);
     node->type = strdup(id_node->type);
     return 0;
 }
@@ -150,26 +160,19 @@ int check_logical_operators(ast_node_t *node)
     ast_node_t *left_node = node->fChild;         // id name
     ast_node_t *right_node = left_node->nSibling; // expression
 
-    if (left_node->not_found)
+    if (left_node->is_func || left_node->not_found)
     {
         print_cannot_find_symbol(left_node->token);
-    }
-    if (right_node->not_found)
-    {
-        print_cannot_find_symbol(right_node->token);
-    }
-
-    if (left_node->is_func)
-    {
-        free(left_node->type);
-        print_cannot_find_symbol(left_node->token);
+        if (left_node->type)
+            free(left_node->type);
         left_node->type = strdup("undef");
     }
-    if (right_node->is_func)
+    if (right_node->is_func || right_node->not_found)
     {
-        free(right_node->type);
-        right_node->type = strdup("undef");
         print_cannot_find_symbol(right_node->token);
+        if (right_node->type)
+            free(right_node->type);
+        right_node->type = strdup("undef");
     }
 
     if ((!strcmp(node->node_name, "And") || !strcmp(node->node_name, "Or")) && (strcmp(left_node->type, right_node->type) || strcmp(left_node->type, "Bool")))
@@ -177,6 +180,8 @@ int check_logical_operators(ast_node_t *node)
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
         // node->type = strdup("undef");
+        if (node->type)
+            free(node->type);
         node->type = strdup("Bool");
 
         return 1;
@@ -186,6 +191,8 @@ int check_logical_operators(ast_node_t *node)
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
         // node->type = strdup("undef");
+        if (node->type)
+            free(node->type);
         node->type = strdup("Bool");
 
         return 1;
@@ -197,10 +204,14 @@ int check_logical_operators(ast_node_t *node)
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
         // node->type = strdup("undef");
+        if (node->type)
+            free(node->type);
         node->type = strdup("Bool");
 
         return 1;
     }
+    if (node->type)
+        free(node->type);
     node->type = strdup("Bool");
     return 0;
 }
@@ -213,24 +224,17 @@ int check_arithmetic_operators(ast_node_t *node)
     // add - tudo excepto none e undef
     // mul, div, mod, sub  - tudo excepto none, string, undef
 
-    if (left_node->not_found)
+    if (left_node->is_func || left_node->not_found)
     {
-        print_cannot_find_symbol(left_node->token);
-    }
-    if (right_node->not_found)
-    {
-        print_cannot_find_symbol(right_node->token);
-    }
-
-    if (left_node->is_func)
-    {
-        free(left_node->type);
+        if (left_node->type)
+            free(left_node->type);
         left_node->type = strdup("undef");
         print_cannot_find_symbol(left_node->token);
     }
-    if (right_node->is_func)
+    if (right_node->is_func || right_node->not_found)
     {
-        free(right_node->type);
+        if (right_node->type)
+            free(right_node->type);
         right_node->type = strdup("undef");
         print_cannot_find_symbol(right_node->token);
     }
@@ -246,6 +250,8 @@ int check_arithmetic_operators(ast_node_t *node)
         // printf("2\n");
 
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
@@ -255,11 +261,22 @@ int check_arithmetic_operators(ast_node_t *node)
 
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        if (node->type)
+            free(node->type);
+        node->type = strdup("undef");
+        return 1;
+    }
+    else if (!strcmp(node->node_name, "Add") && (strcmp(left_node->type, right_node->type) || (!strcmp(left_node->type, "none") || !strcmp(left_node->type, "undef") || !strcmp(left_node->type, "Bool"))))
+    {
+        print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
     // printf("4\n");
-
+    if (node->type)
+        free(node->type);
     node->type = strdup(left_node->type);
     return 0;
 }
@@ -268,13 +285,10 @@ int check_unary_operator(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild; // id name
 
-    if (child_node->not_found)
+    if (child_node->is_func || child_node->not_found)
     {
-        print_cannot_find_symbol(child_node->token);
-    }
-    if (child_node->is_func)
-    {
-        free(child_node->type);
+        if (child_node->type)
+            free(child_node->type);
         child_node->type = strdup("undef");
         print_cannot_find_symbol(child_node->token);
     }
@@ -283,15 +297,21 @@ int check_unary_operator(ast_node_t *node)
     {
         //! erro
         print_cannot_be_applied_to_type(node->token, child_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("Bool");
         return 1;
     }
     else if ((!strcmp(node->node_name, "Plus") || !strcmp(node->node_name, "Minus")) && strcmp(child_node->type, "Int") && strcmp(child_node->type, "Float32"))
     {
         print_cannot_be_applied_to_type(node->token, child_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
+    if (node->type)
+        free(node->type);
     node->type = strdup(child_node->type);
     return 0;
 }
@@ -301,24 +321,17 @@ int check_parse_args(ast_node_t *node)
     ast_node_t *left_node = node->fChild;         // id name
     ast_node_t *right_node = left_node->nSibling; // expression
 
-    if (left_node->not_found)
+    if (left_node->is_func || left_node->not_found)
     {
-        print_cannot_find_symbol(left_node->token);
-    }
-    if (right_node->not_found)
-    {
-        print_cannot_find_symbol(right_node->token);
-    }
-
-    if (left_node->is_func)
-    {
-        free(left_node->type);
+        if (node->type)
+            free(node->type);
         left_node->type = strdup("undef");
         print_cannot_find_symbol(left_node->token);
     }
-    if (right_node->is_func)
+    if (right_node->is_func || right_node->not_found)
     {
-        free(right_node->type);
+        if (node->type)
+            free(node->type);
         right_node->type = strdup("undef");
         print_cannot_find_symbol(right_node->token);
     }
@@ -327,9 +340,13 @@ int check_parse_args(ast_node_t *node)
     {
         //! erro invalid type
         print_cannot_be_applied_to_types(node->token, left_node->type, right_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
+    if (node->type)
+        free(node->type);
     node->type = strdup("Int");
     return 0;
 }
@@ -344,42 +361,32 @@ int check_assign(ast_node_t *node)
         return 1;
     }
 
-    if (id_node->not_found)
+    if (id_node->not_found || id_node->is_func)
     {
-        print_cannot_find_symbol(id_node->token);
-    }
-    if (expr_node->not_found)
-    {
-        print_cannot_find_symbol(expr_node->token);
-    }
-    if (id_node->is_func)
-    {
-        free(id_node->type);
+        if (node->type)
+            free(node->type);
         id_node->type = strdup("undef");
         print_cannot_find_symbol(id_node->token);
     }
-    if (expr_node->is_func)
+    if (expr_node->not_found || expr_node->is_func)
     {
-        free(expr_node->type);
+        if (node->type)
+            free(node->type);
         expr_node->type = strdup("undef");
         print_cannot_find_symbol(expr_node->token);
-    }
-
-    if (id_node->is_func)
-    {
-        //! invalid id
-        print_cannot_find_symbol(id_node->token);
-        id_node->type = strdup("undef");
     }
 
     if (strcmp(id_node->type, expr_node->type) || !strcmp(id_node->type, "undef") || !strcmp(id_node->type, "none"))
     {
         // !erro invalid type
         print_cannot_be_applied_to_types(node->token, id_node->type, expr_node->type);
+        if (node->type)
+            free(node->type);
         node->type = strdup("undef");
         return 1;
     }
-
+    if (node->type)
+        free(node->type);
     node->type = strdup(id_node->type);
     return 0;
 }
@@ -387,14 +394,11 @@ int check_statements(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild;
 
-    if (child_node && child_node->not_found)
+    if (child_node && (child_node->is_func || child_node->not_found))
     {
-        print_cannot_find_symbol(child_node->token);
-    }
+        if (child_node->type)
 
-    if (child_node && child_node->is_func)
-    {
-        free(child_node->type);
+            free(child_node->type);
         child_node->type = strdup("undef");
         print_cannot_find_symbol(child_node->token);
     }
@@ -587,14 +591,20 @@ void check_body(ast_node_t *node)
     }
     else if (!strcmp(node->node_name, "IntLit"))
     {
+        if (node->type)
+            free(node->type);
         node->type = strdup("Int");
     }
     else if (!strcmp(node->node_name, "RealLit"))
     {
+        if (node->type)
+            free(node->type);
         node->type = strdup("Float32");
     }
     else if (!strcmp(node->node_name, "StrLit"))
     {
+        if (node->type)
+            free(node->type);
         node->type = strdup("String");
     }
     else if (!strcmp(node->node_name, "Id"))

@@ -11,7 +11,7 @@ ast_node_t *create_node(char *node_name, token_t token)
         return NULL;
 
     new_node->token = token;
-    new_node->node_name = node_name;
+    new_node->node_name = strdup(node_name);
     new_node->nSibling = NULL;
     new_node->fChild = NULL;
     new_node->is_func = 0;
@@ -162,6 +162,12 @@ void free_ast(ast_node_t *node)
         free_ast(node->nSibling);
     if (node->token.text)
         free(node->token.text);
+
+    if (node->node_name)
+        free(node->node_name);
+    if (node->type)
+        free(node->type);
+
     free(node);
 }
 

@@ -306,10 +306,10 @@ int main(int argc, char *argv[]) {
                 printf("\n");
             print_tables();
             print_program(program);
+            free_tables(global_table);
         }
         if (program  && !lexical_error){
-
-            free_ast(program);
+            free_ast(program); 
         }
     }
     else if(t_flag){
@@ -330,11 +330,14 @@ int main(int argc, char *argv[]) {
 
             check_symtab(program);
             find_unused(global_table->next);
+            free_tables(global_table);
 
         }
         
-        if (program  && !lexical_error)
-            free_ast(program);
+        if (program  && !lexical_error){
+            free_ast(program); 
+        }
+
     }
     yylex_destroy();
 

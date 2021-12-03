@@ -9,6 +9,45 @@
 extern table_t *current_table, *global_table;
 extern int semantic_error;
 
+void free_params(param_t *params)
+{
+    if (params->next)
+        free_params(params->next);
+    if (params->type)
+        free(params->type);
+    free(params);
+}
+
+void free_table_elems(table_elem_t *elem)
+{
+
+    if (elem->next)
+        free_table_elems(elem->next);
+    if (elem->name)
+        free(elem->name);
+    if (elem->type)
+        free(elem->type);
+    if (elem->params)
+        free_params(elem->params);
+    free(elem);
+}
+
+void free_tables(table_t *table)
+{
+    if (table->next)
+        free_tables(table->next);
+    // if (table->params)
+    //     free_params(table->params);
+    if (table->first)
+        free_table_elems(table->first);
+    if (table->name)
+        free(table->name);
+    if (table->return_type)
+        free(table->return_type);
+
+    free(table);
+}
+
 table_t *create_table(int global)
 {
     table_t *newTable = (table_t *)malloc(sizeof(table_t));
@@ -19,7 +58,7 @@ table_t *create_table(int global)
     newTable->is_global = global;
     newTable->name = NULL;
     newTable->params = NULL;
-    newTable->return_type = "none";
+    newTable->return_type = strdup("none");
     newTable->next = NULL;
     newTable->first = NULL;
 
@@ -57,6 +96,8 @@ int search_table(ast_node_t *node)
                     node->elem = aux;
                     node->is_func = 1;
                 }
+                if (node->type)
+                    free(node->type); //!!!!!
                 node->type = strdup(aux->type);
                 aux->is_used = 1;
                 return 0;
@@ -76,6 +117,8 @@ int search_table(ast_node_t *node)
                     node->elem = aux;
                     node->is_func = 1;
                 }
+                if (node->type)
+                    free(node->type);
                 node->type = strdup(aux->type);
                 aux->is_used = 1;
 
@@ -83,7 +126,8 @@ int search_table(ast_node_t *node)
             }
         }
     }
-
+    if (node->type)
+        free(node->type);
     node->type = strdup("undef");
     node->not_found = 1;
     return 1;
@@ -130,8 +174,8 @@ int insert_elem_func()
     new_elem->is_used = 0;
     new_elem->is_param = 0;
     new_elem->is_func = 1;
-    new_elem->type = current_table->return_type;
-    new_elem->name = current_table->name;
+    new_elem->type = strdup(current_table->return_type);
+    new_elem->name = strdup(current_table->name);
     new_elem->next = NULL;
     new_elem->params = current_table->params;
     new_elem->col = 0;
@@ -210,6 +254,7 @@ int insert_elem_var(int param, ast_node_t *node)
         param_t *par = (param_t *)malloc(sizeof(param_t));
         if (par == NULL)
             return 1;
+
         par->type = strdup(node->fChild->node_name);
         par->next = NULL;
         param_t *aux = current_table->params;

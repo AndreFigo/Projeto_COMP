@@ -8,7 +8,7 @@ token_t create_token(char *text, int line, int col, int token_type)
     token_t t;
     t.n_col = col;
     t.n_line = line;
-
+    //!!!!
     t.text = strdup(text);
 
     return t;

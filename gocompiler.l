@@ -172,7 +172,7 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
                 if (l_flag) printf("SEMICOLON\n");
                 semicolon=0;
 
-                yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); \
+                yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); 
                 yycolno=1;
                 yylineno++;
                 return SEMICOLON;
