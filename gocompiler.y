@@ -6,6 +6,7 @@
     #include "AST.h"
     #include "structures.h"
     #include "semantics.h"
+    #include "codegen.h"
     #include "y.tab.h"
 
 
@@ -330,8 +331,11 @@ int main(int argc, char *argv[]) {
 
             check_symtab(program);
             find_unused(global_table->next);
-            free_tables(global_table);
 
+            if (! semantic_error){
+                codegen(program);
+            }
+            free_tables(global_table);
         }
         
         if (program  && !lexical_error){

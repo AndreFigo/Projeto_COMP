@@ -26,6 +26,7 @@ struct table_elem
     int is_used;
     int line;
     int col;
+    char *llvm_name;
 
     table_elem_t *next;
 };
@@ -50,6 +51,7 @@ struct ast_node
     int not_found;
     char *type;
     int is_func;
+    char *llvm_name;
     table_elem_t *elem;
     token_t token;        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ast_node_t *fChild;   // first child

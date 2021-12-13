@@ -1,27 +1,27 @@
-// ./gocompiler < Comp2021/meta3/statements_expressions.dgo | sort
 package main;
+var a int;
+var b string ;
+var cg float32 ;
+var d bool ;
 
-func func__(a int, b float32) {return 1;}
+func main() int {
 
-//func func_(a int, a int, b float32) string { return;}
+	var a int;
+	//var b string ;
+	var c float32 ;
+	//var d bool ;
+	
+	a=1;
+	c=2.1;
 
-func func1(a int, b int, c float32, d float32) float32 {
-	var integer int;
-	return integer;
+	fmt.Println(a);
+	fmt.Println(c);
+	return 0;
+
 }
 
+func factorial( a int , b float32, c bool){}
 
-
-func main() {
-	var in int;
-	var out float32;
-
-
-	//in = func1
-
-	if func1 {
-		
-	}
-
-	out = func1+func1
+func fact( a int , b float32, c bool) int {
+	return 1;
 }

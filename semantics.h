@@ -23,5 +23,6 @@ void print_cannot_be_applied_to_type(token_t token, char *type);
 void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB);
 void print_incompatible_type(token_t token, token_t child_token, char *type);
 void print_symbol_declared_but_never_used(int line, int col, char *var);
+table_t *find_table(ast_node_t *func_header);
 
 #endif

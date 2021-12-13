@@ -16,6 +16,7 @@ ast_node_t *create_node(char *node_name, token_t token)
     new_node->fChild = NULL;
     new_node->is_func = 0;
     new_node->not_found = 0;
+    new_node->llvm_name = 0;
     new_node->type = NULL;
     new_node->elem = NULL;
 

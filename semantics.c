@@ -137,9 +137,11 @@ table_t *find_table(ast_node_t *func_header)
 {
 
     table_t *aux = global_table->next;
+    // printf("id %s\n", func_header->fChild->token.text);
 
     for (; aux; aux = aux->next)
     {
+        // printf("%s\n", aux->name);
         if (!strcmp(aux->name, func_header->fChild->token.text))
         {
             return aux;
@@ -177,6 +179,7 @@ int insert_elem_func()
     new_elem->type = strdup(current_table->return_type);
     new_elem->name = strdup(current_table->name);
     new_elem->next = NULL;
+    new_elem->llvm_name = NULL;
     new_elem->params = current_table->params;
     new_elem->col = 0;
     new_elem->line = 0;
@@ -217,6 +220,7 @@ int insert_elem_var(int param, ast_node_t *node)
     new_elem->name = strdup(node->fChild->nSibling->token.text);
     new_elem->next = NULL;
     new_elem->params = NULL;
+    new_elem->llvm_name = NULL;
     new_elem->col = node->fChild->nSibling->token.n_col;
     new_elem->line = node->fChild->nSibling->token.n_line;
 
@@ -281,6 +285,7 @@ table_elem_t *create_return_elem()
     new_elem->is_func = 0;
     new_elem->name = strdup("return");
     new_elem->next = NULL;
+    new_elem->llvm_name = NULL;
     new_elem->params = NULL;
 
     if (current_table->return_type)
