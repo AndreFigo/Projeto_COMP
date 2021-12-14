@@ -28,6 +28,20 @@ char *get_content(char *str)
     return string;
 }
 
+char *remove_double_quotes(char *str)
+{
+
+    char *string = (char *)malloc(strlen(str) * sizeof(char) + 1);
+    int i = 0, j = 0;
+    while (str[i++] != '"')
+        ;
+    while (str[i] != '"')
+        *(string + j++) = str[i++];
+
+    *(string + j) = 0;
+    return string;
+}
+
 char *to_lower_case(char *str)
 {
     char *lower = (char *)malloc(strlen(str) * sizeof(char) + 1);

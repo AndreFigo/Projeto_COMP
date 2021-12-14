@@ -9,5 +9,6 @@ token_t create_token(char *text, int line, int col, int token_type);
 
 char *get_content(char *str);
 char *to_lower_case(char *str);
+char *remove_double_quotes(char *str);
 
 #endif
