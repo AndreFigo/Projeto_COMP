@@ -6,5 +6,7 @@
 #include "semantics.h"
 
 void codegen(ast_node_t *node);
+char *llvm_var_type(ast_node_t *node);
+char *llvm_node_type(ast_node_t *node);
 
 #endif

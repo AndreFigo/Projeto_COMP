@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "checks.h"
+#include "codegen.h"
+
 #include "AST.h"
 
 extern table_t *current_table, *global_table;
@@ -179,7 +181,7 @@ int insert_elem_func()
     new_elem->type = strdup(current_table->return_type);
     new_elem->name = strdup(current_table->name);
     new_elem->next = NULL;
-    new_elem->llvm_name = NULL;
+    new_elem->llvm_name = strdup(current_table->name);
     new_elem->params = current_table->params;
     new_elem->col = 0;
     new_elem->line = 0;
@@ -220,7 +222,7 @@ int insert_elem_var(int param, ast_node_t *node)
     new_elem->name = strdup(node->fChild->nSibling->token.text);
     new_elem->next = NULL;
     new_elem->params = NULL;
-    new_elem->llvm_name = NULL;
+    new_elem->llvm_name = strdup(node->fChild->nSibling->token.text);
     new_elem->col = node->fChild->nSibling->token.n_col;
     new_elem->line = node->fChild->nSibling->token.n_line;
 

@@ -11,14 +11,22 @@ void print_init()
     printf(" @.strlit = private unnamed_addr constant [4 x i8] c\"%%s\\0A\\00\", align 1\n");
     printf(" @.intlit = private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
     printf(" @.reallit = private unnamed_addr constant [4 x i8] c\"%%f\\0A\\00\", align 1\n");
-    printf(" @.boollit= private unnamed_addr constant [4 x i8] c\"%%B\\0A\\00\", align 1\n");
+    printf(" @.boollit= private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
     printf("declare i32 @printf(i8*, ...)\n\n");
 }
 
 int is_global(char *name)
 {
     // 1 = global , 0 = local
-    table_elem_t *elem = global_table->first;
+    table_elem_t *elem = current_table->first;
+    if (current_table != global_table)
+    {
+        for (; elem; elem = elem->next)
+            if (!strcmp(elem->name, name))
+                return 0;
+    }
+
+    elem = global_table->first;
     for (; elem; elem = elem->next)
         if (!strcmp(elem->name, name))
             return 1;
@@ -150,12 +158,15 @@ void codegen_func(ast_node_t *node)
     current_table = find_table(header);
     printf("{\n");
     var_counter = 1;
+    // Todo allocate mem for params and update table elem
+
     if (body->fChild)
         codegen(body->fChild);
     else
         printf("\tret void\n");
     printf("}\n");
     current_table = global_table;
+    // Todo reset llvm_name of parameters
 }
 
 void codegen_var(ast_node_t *node)
@@ -188,7 +199,6 @@ void codegen_var(ast_node_t *node)
     }
     else
     {
-
         if (!strcmp(type_node->node_name, "String"))
         {
             printf("\t%%%s = alloca i8*\n", id_node->token.text);
@@ -240,6 +250,66 @@ void codegen_return(ast_node_t *node)
 
 void codegen_call(ast_node_t *node)
 {
+    // type da funcao
+    // type dos filhos
+
+    char *param_name;
+    char num[10];
+    char *type;
+    ast_node_t *id_node = node->fChild;
+    ast_node_t *params = id_node->nSibling;
+
+    codegen(id_node);
+    int var_counter_init = var_counter;
+
+    for (; params; params = params->nSibling)
+    {
+        type = llvm_node_type(params);
+
+        if (!strcmp(params->node_name, "Id") && is_global(params->token.text))
+        {
+            printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, params->llvm_name);
+        }
+
+        else if (!strcmp(params->node_name, "Id"))
+        {
+            printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, params->llvm_name);
+        }
+        else
+        {
+            if (!strcmp(type, "i32") || !strcmp(type, "i1"))
+                printf("\t%%%d = add  %s 0, %%%s\n", var_counter++, type, params->llvm_name);
+            else if (!strcmp(type, "double"))
+                printf("\t%%%d = fadd  %s 0, %%%s\n", var_counter++, type, params->llvm_name);
+
+            // param_name = strdup(params->llvm_name);
+        }
+
+        free(type);
+    }
+    type = llvm_node_type(node);
+
+    if (!strcmp(type, "void"))
+    {
+        printf("\tcall %s @%s(", type, id_node->llvm_name);
+    }
+    else
+    {
+        printf("\t%%%d = call %s @%s(", var_counter++, type, id_node->llvm_name);
+    }
+    free(type);
+    for (params = id_node->nSibling; params; params = params->nSibling)
+    {
+        type = llvm_node_type(params);
+
+        if (params->nSibling)
+            printf("%s %%%d,", type, var_counter_init++);
+        else
+            printf("%s %%%d", type, var_counter_init++);
+
+        free(type);
+    }
+    printf(")\n");
 }
 
 void codegen_print(ast_node_t *node)
@@ -249,13 +319,18 @@ void codegen_print(ast_node_t *node)
 
     codegen(child_node);
 
-    if (!strcmp(child_node->node_name, "Id") && is_global(child_node->node_name))
+    if (!strcmp(child_node->node_name, "Id") && is_global(child_node->token.text))
     {
         printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, child_node->llvm_name);
     }
-    else
+
+    else if (!strcmp(child_node->node_name, "Id"))
     {
         printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, child_node->llvm_name);
+    }
+    else
+    {
+        // no need
     }
 
     // call i32(i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str, i32 0, i32 0), i32 %aux2)
@@ -269,18 +344,248 @@ void codegen_print(ast_node_t *node)
     }
     else if (!strcmp(type, "i1"))
     {
+        printf("\tcall i32(i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.boollit, i32 0, i32 0), i1 %%%d)\n", var_counter++ - 1);
     }
     else if (!strcmp(type, "i8*"))
     {
+        printf("\tcall i32(i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.strlit, i32 0, i32 0), i8* %%%d)\n", var_counter++ - 1);
     }
 }
 
-void codegen_operator(ast_node_t *node)
+void codegen_arithmetic(ast_node_t *node)
 {
+    ast_node_t *left_child = node->fChild;
+    ast_node_t *right_child = left_child->nSibling;
+    char *op1, *op2;
+    char num[10];
+
+    codegen(left_child);
+
+    char *type = llvm_node_type(left_child);
+
+    if (!strcmp(left_child->node_name, "Id") && is_global(left_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else if (!strcmp(left_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else
+    {
+        op1 = strdup(left_child->llvm_name);
+    }
+
+    if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else if (!strcmp(right_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else
+    {
+        op2 = strdup(right_child->llvm_name);
+    }
+
+    if (!strcmp(node->node_name, "Add"))
+    {
+        if (!strcmp(type, "i32"))
+        {
+            printf("\t%%%d = add i32 %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+        else if (!strcmp(type, "double"))
+        {
+            printf("\t%%%d = fadd double %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+        else
+        {
+            // TODO: add strings
+        }
+    }
+    else if (!strcmp(node->node_name, "Sub"))
+    {
+        if (!strcmp(type, "i32"))
+        {
+            printf("\t%%%d = sub i32 %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+        else if (!strcmp(type, "double"))
+        {
+            printf("\t%%%d = fsub double %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+    }
+    else if (!strcmp(node->node_name, "Mul"))
+    {
+        if (!strcmp(type, "i32"))
+        {
+            printf("\t%%%d = mul i32 %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+        else if (!strcmp(type, "double"))
+        {
+            printf("\t%%%d = fmul double %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+    }
+    else if (!strcmp(node->node_name, "Div"))
+    {
+        if (!strcmp(type, "i32"))
+        {
+            printf("\t%%%d = sdiv i32 %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+        else if (!strcmp(type, "double"))
+        {
+            printf("\t%%%d = fdiv double %%%s, %%%s\n", var_counter++, op1, op2);
+        }
+    }
+    else if (!strcmp(node->node_name, "Mod"))
+    {
+        printf("\t%%%d = urem i32 %%%s, %%%s\n", var_counter++, op1, op2);
+    }
+
+    sprintf(num, "%d", var_counter - 1);
+    free(op1);
+    free(op2);
+    node->llvm_name = strdup(num);
+}
+
+void codegen_unary(ast_node_t *node)
+{
+    ast_node_t *child_node = node->fChild;
+    char *child_name;
+    char num[10];
+
+    codegen(child_node);
+
+    char *type = llvm_node_type(child_node);
+
+    if (!strcmp(child_node->node_name, "Id") && is_global(child_node->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, child_node->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        child_name = strdup(num);
+    }
+    else if (!strcmp(child_node->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, child_node->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        child_name = strdup(num);
+    }
+    else
+    {
+        child_name = strdup(child_node->llvm_name);
+    }
+
+    if (!strcmp(node->node_name, "Not"))
+    {
+        printf("\t%%%d = xor i1 %%%s, 1\n", var_counter++, child_name);
+    }
+    else if (!strcmp(node->node_name, "Minus"))
+    {
+        if (!strcmp(type, "i32"))
+            printf("\t%%%d = sub i32  0, %%%s", var_counter++, child_name);
+        else
+            printf("\t%%%d = fsub double 0.0, %%%s", var_counter++, child_name);
+    }
+    else if (!strcmp(node->node_name, "Plus"))
+    {
+        // nothing to do
+    }
+
+    sprintf(num, "%d", var_counter - 1);
+
+    node->llvm_name = strdup(num);
+    free(child_name);
 }
 
 void codegen_logical(ast_node_t *node)
 {
+    ast_node_t *left_child = node->fChild;
+    ast_node_t *right_child = left_child->nSibling;
+    char *op1, *op2;
+    char num[10];
+
+    codegen(left_child);
+
+    char *type = llvm_node_type(left_child);
+
+    if (!strcmp(left_child->node_name, "Id") && is_global(left_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else if (!strcmp(left_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else
+    {
+        op1 = strdup(left_child->llvm_name);
+    }
+
+    if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else if (!strcmp(right_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else
+    {
+        op2 = strdup(right_child->llvm_name);
+    }
+
+    if (!strcmp(node->node_name, "Or"))
+    {
+        printf("\t%%%d = or i1 %%%s, %%%s\n", var_counter++, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "And"))
+    {
+        printf("\t%%%d = and i1 %%%s, %%%s\n", var_counter++, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Eq"))
+    {
+        printf("\t%%%d = icmp eq %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Ne"))
+    {
+        printf("\t%%%d = icmp ne %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Le"))
+    {
+        printf("\t%%%d = icmp sle %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Ge"))
+    {
+        printf("\t%%%d = icmp sge %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Lt"))
+    {
+        printf("\t%%%d = icmp slt %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    else if (!strcmp(node->node_name, "Gt"))
+    {
+        printf("\t%%%d = icmp sgt %s %%%s, %%%s\n", var_counter++, type, op1, op2);
+    }
+    sprintf(num, "%d", var_counter - 1);
+    free(op1);
+    free(op2);
+    node->llvm_name = strdup(num);
 }
 
 void codegen_assign(ast_node_t *node)
@@ -295,9 +600,9 @@ void codegen_assign(ast_node_t *node)
 
     // printf("name %s\n", left_child->llvm_name);
 
-    if (is_global(left_child->node_name))
+    if (is_global(left_child->token.text))
     {
-        if (!strcmp(right_child->node_name, "Id") && is_global(right_child->node_name))
+        if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
         {
             printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, right_child->llvm_name);
             printf("\tstore %s %%%d, %s* @%s\n", type, var_counter - 1, type, left_child->llvm_name);
@@ -309,7 +614,7 @@ void codegen_assign(ast_node_t *node)
     }
     else
     {
-        if (!strcmp(right_child->node_name, "Id") && is_global(right_child->node_name))
+        if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
         {
             //%2 = load i32, i32* @glo, align 4
             printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, right_child->llvm_name);
@@ -372,11 +677,15 @@ void codegen(ast_node_t *node)
     {
         codegen_assign(node); //!!!!!!
     }
-    if (!strcmp(node->node_name, "Not") || !strcmp(node->node_name, "Minus") || !strcmp(node->node_name, "Plus") || !strcmp(node->node_name, "Add") || !strcmp(node->node_name, "Sub") || !strcmp(node->node_name, "Mul") || !strcmp(node->node_name, "Div") || !strcmp(node->node_name, "Mod") || !strcmp(node->node_name, "Eq") || !strcmp(node->node_name, "Ne") || !strcmp(node->node_name, "Le") || !strcmp(node->node_name, "Ge") || !strcmp(node->node_name, "Lt") || !strcmp(node->node_name, "Gt"))
+    if (!strcmp(node->node_name, "Not") || !strcmp(node->node_name, "Minus") || !strcmp(node->node_name, "Plus"))
     {
-        codegen_operator(node);
+        codegen_unary(node);
     }
-    if (!strcmp(node->node_name, "And") || !strcmp(node->node_name, "Or"))
+    if (!strcmp(node->node_name, "Add") || !strcmp(node->node_name, "Sub") || !strcmp(node->node_name, "Mul") || !strcmp(node->node_name, "Div") || !strcmp(node->node_name, "Mod"))
+    {
+        codegen_arithmetic(node);
+    }
+    if (!strcmp(node->node_name, "And") || !strcmp(node->node_name, "Or") || !strcmp(node->node_name, "Eq") || !strcmp(node->node_name, "Ne") || !strcmp(node->node_name, "Le") || !strcmp(node->node_name, "Ge") || !strcmp(node->node_name, "Lt") || !strcmp(node->node_name, "Gt"))
     {
         codegen_logical(node);
     }
@@ -401,12 +710,16 @@ void codegen(ast_node_t *node)
     if (!strcmp(node->node_name, "Id"))
     {
         // search table
+        // printf("id name %s\n", node->token.text);
+
         table_elem_t *elem = search_table_llvm(node->token.text);
         char *type = llvm_node_type(node);
 
         // printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, elem->llvm_name);
 
-        // TODO: separar em dois
+        // TODO: dividir em dois !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // printf("llvm name %s\n", elem->llvm_name);
+
         node->llvm_name = strdup(elem->llvm_name);
     }
 
