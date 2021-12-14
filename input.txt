@@ -1,27 +1,48 @@
 package main;
-var a int;
+var a float32;
 var b string ;
-var cg float32 ;
+var c float32 ;
 var d bool ;
+
+func factorial( a int ){
+	fmt.Println(a);
+
+}
+
+func fact( a int , b float32, c bool) int {
+	return 3;
+}
 
 func main() int {
 
-	var a int;
+	var i int;
 	//var b string ;
-	var c float32 ;
-	//var d bool ;
+	//var c float32 ;
+	var a float32;
+	var a1 float32;
+	var a2 float32;
+	var a3 float32;
+	var a4 float32;
+	//var a5 float32;
 	
-	a=1;
-	c=2.1;
+	a= 2.0+7.0;
+	a1= 1.0-a;
+	a2= ( 6.0 - 7.0 *6.0) / a;
+	a4= a3/7.32;
 
 	fmt.Println(a);
-	fmt.Println(c);
-	return 0;
+	fmt.Println(a1);
+	fmt.Println(a2);
+	fmt.Println(a3);
+	fmt.Println(a4);
+
+	factorial(1);
+	factorial(3);
+	factorial(1);
+	fmt.Println(fact(i, a,d));
+	
+	
+	return fact(i, a, 1==1);
 
 }
 
-func factorial( a int , b float32, c bool){}
-
-func fact( a int , b float32, c bool) int {
-	return 1;
-}

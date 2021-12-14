@@ -1,6 +1,6 @@
 #include "codegen.h"
 
-int var_counter = 0;
+int var_counter = 0, returned = 0;
 extern table_t *current_table, *global_table;
 
 void print_init()
@@ -12,6 +12,7 @@ void print_init()
     printf(" @.intlit = private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
     printf(" @.reallit = private unnamed_addr constant [4 x i8] c\"%%f\\0A\\00\", align 1\n");
     printf(" @.boollit= private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
+    printf("declare i32 @atoi(...)\n");
     printf("declare i32 @printf(i8*, ...)\n\n");
 }
 
@@ -114,6 +115,35 @@ char *llvm_node_type(ast_node_t *node)
     return return_type;
 }
 
+void reset_params_llvm_name()
+{
+    table_elem_t *elem = current_table->first;
+    for (; elem; elem = elem->next)
+    {
+        if (elem->is_param)
+        {
+            free(elem->llvm_name);
+            elem->llvm_name = strdup(elem->name);
+        }
+    }
+}
+
+void update_params_llvm_name(int n_params)
+{
+    int i = 1;
+    table_elem_t *elem = current_table->first;
+    for (; i <= n_params; elem = elem->next)
+    {
+
+        if (elem->is_param)
+        {
+            char num[10];
+            sprintf(num, "%d", i++);
+            elem->llvm_name = strdup(num);
+        }
+    }
+}
+
 void codegen_func(ast_node_t *node)
 {
     // funcdecl -> header , body
@@ -125,25 +155,26 @@ void codegen_func(ast_node_t *node)
     ast_node_t *body = header->nSibling;
 
     ast_node_t *id_node = header->fChild;
-    ast_node_t *type = id_node->nSibling;
+    ast_node_t *type_node = id_node->nSibling;
     ast_node_t *fParams;
 
-    if (!strcmp(type->node_name, "FuncParams"))
+    // TODO: distiçao com a main
+    if (!strcmp(type_node->node_name, "FuncParams"))
     {
-        fParams = type;
-        type = NULL;
+        fParams = type_node;
+        type_node = NULL;
     }
     else
-        fParams = type->nSibling;
+        fParams = type_node->nSibling;
 
-    char *func_type = llvm_var_type(type);
+    char *func_type = llvm_var_type(type_node);
 
     printf("define %s @%s(", func_type, id_node->token.text);
     free(func_type);
 
     ast_node_t *current_node = fParams->fChild;
 
-    for (current_node; current_node; current_node = current_node->nSibling)
+    for (; current_node; current_node = current_node->nSibling)
     {
         // criar table_elem
         char *param_type = llvm_var_type(current_node->fChild);
@@ -160,13 +191,32 @@ void codegen_func(ast_node_t *node)
     var_counter = 1;
     // Todo allocate mem for params and update table elem
 
+    current_node = fParams->fChild;
+    char *type;
+    int n_params = 0;
+    for (; current_node; current_node = current_node->nSibling)
+    {
+        type = llvm_var_type(current_node->fChild);
+        printf("\t%%%d = alloca %s\n", var_counter++, type);
+        printf("\tstore %s %%%s, %s* %%%d\n", type, current_node->fChild->nSibling->token.text, type, var_counter - 1);
+        free(type);
+        n_params++;
+    }
+
+    update_params_llvm_name(n_params);
+
     if (body->fChild)
         codegen(body->fChild);
-    else
-        printf("\tret void\n");
+
+    if (!returned)
+    {
+        printf("ret void");
+    }
     printf("}\n");
+    returned = 0;
+
+    reset_params_llvm_name();
     current_table = global_table;
-    // Todo reset llvm_name of parameters
 }
 
 void codegen_var(ast_node_t *node)
@@ -231,6 +281,58 @@ void codegen_if(ast_node_t *node)
 {
 }
 
+void codegen_parseargs(ast_node_t *node)
+{
+    ast_node_t *left_child = node->fChild;
+    ast_node_t *right_child = left_child->nSibling;
+    char *op1, *op2;
+    char num[10];
+
+    codegen(left_child);
+
+    char *type = llvm_node_type(left_child);
+
+    if (!strcmp(left_child->node_name, "Id") && is_global(left_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else if (!strcmp(left_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, left_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op1 = strdup(num);
+    }
+    else
+    {
+        op1 = strdup(left_child->llvm_name);
+    }
+
+    if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
+    {
+        printf("\t%%%d = load %s, %s* @%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else if (!strcmp(right_child->node_name, "Id"))
+    {
+        printf("\t%%%d = load %s, %s* %%%s\n", var_counter++, type, type, right_child->llvm_name);
+        sprintf(num, "%d", var_counter - 1);
+        op2 = strdup(num);
+    }
+    else
+    {
+        op2 = strdup(right_child->llvm_name);
+    }
+
+    // todo main args and parseagrs
+
+    //%1 = getelementptr i8*, i8** %argv, i64 1
+    //%2 = load i8*, i8** %1
+    //%3 = call i32 (i8*, ...) bitcast (i32 (...)* @atoi to i32 (i8*, ...)*)(i8* %2)
+}
+
 void codegen_return(ast_node_t *node)
 {
     ast_node_t *child_node = node->fChild;
@@ -246,6 +348,7 @@ void codegen_return(ast_node_t *node)
     {
         printf("\tret %s %%%s\n", type, child_node->llvm_name);
     }
+    returned = 1;
 }
 
 void codegen_call(ast_node_t *node)
@@ -310,6 +413,9 @@ void codegen_call(ast_node_t *node)
         free(type);
     }
     printf(")\n");
+
+    sprintf(num, "%d", var_counter - 1);
+    node->llvm_name = strdup(num);
 }
 
 void codegen_print(ast_node_t *node)
@@ -668,6 +774,10 @@ void codegen(ast_node_t *node)
     if (!strcmp(node->node_name, "Call"))
     {
         codegen_call(node);
+    }
+    if (!strcmp(node->node_name, "ParseArgs"))
+    {
+        codegen_parseargs(node);
     }
     if (!strcmp(node->node_name, "Print"))
     {
