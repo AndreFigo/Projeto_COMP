@@ -10,7 +10,8 @@ token_t create_token(char *text, int line, int col, int token_type)
     t.n_col = col;
     t.n_line = line;
     //!!!!
-    t.text = strdup(text);
+    if (token_type)
+        t.text = strdup(text);
 
     return t;
 }
@@ -47,7 +48,7 @@ char *remove_double_quotes(char *str)
     char *string = (char *)malloc(strlen(str) * sizeof(char) * 2 + 1);
     int i = 1, j = 0;
     int barra = 0;
-    char result[5];
+    // char result[5];
     while (str[i] != 0)
     {
         if (barra)
@@ -120,9 +121,32 @@ char *remove_double_quotes(char *str)
 char *to_lower_case(char *str)
 {
     char *lower = (char *)malloc(strlen(str) * sizeof(char) + 1);
+    //! free this pls
     for (int i = 0; i < strlen(str) + 1; i++)
     {
         *(lower + i) = tolower(str[i]);
     }
+    return lower;
+}
+
+char *floating_llvm(char *str)
+{
+    int j = 0;
+    int has_point = 0;
+    char *lower = (char *)malloc(strlen(str) * sizeof(char) + 3);
+    //! free this pls
+    for (int i = 0; i < strlen(str) + 1; i++)
+    {
+        if (str[i] == '.')
+            has_point = 1;
+        if (tolower(str[i]) == 'e' && !has_point)
+        {
+            *(lower + j++) = '.';
+        }
+        *(lower + j++) = tolower(str[i]);
+    }
+
+    *(lower + j++) = 0;
+
     return lower;
 }

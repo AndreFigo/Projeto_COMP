@@ -14,12 +14,9 @@ void print_global_strings(ast_node_t *node)
 
             printf("@.str%d= private unnamed_addr constant [%d x i8] c\"%s\\0A\\00\"\n", string_counter++, (int)str_len_llvm(no_quotes) + 2, no_quotes);
             free(no_quotes);
-            char str[30];
-            sprintf(str, ".str%d", string_counter - 1);
             node->fChild->llvm_name = string_counter - 1;
         }
     }
-
     if (node->fChild)
         print_global_strings(node->fChild);
     if (node->nSibling)
@@ -32,6 +29,7 @@ void print_init(ast_node_t *node)
     printf("declare i32 @putchar(...)\n");
     printf("declare i32 @getchar(...)\n");
     printf("@.strlit = private unnamed_addr constant [4 x i8] c\"%%s\\0A\\00\", align 1\n");
+    printf("@.newline = private unnamed_addr constant [2 x i8] c\"\\0A\\00\", align 1\n");
     printf("@.intlit = private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
     printf("@.reallit = private unnamed_addr constant [7 x i8] c\"%%.08f\\0A\\00\", align 1\n");
     printf("@.boollit= private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
@@ -172,6 +170,35 @@ void update_params_llvm_name(int n_params)
     }
 }
 
+void print_extra_return(char *func_type)
+{
+    if (!strcmp(func_type, "i32"))
+    {
+        printf("\tret i32 0\n");
+    }
+    else if (!strcmp(func_type, "i1"))
+    {
+        printf("\tret i1 0\n");
+    }
+    else if (!strcmp(func_type, "double"))
+    {
+        printf("\tret double 0.0\n");
+    }
+    else if (!strcmp(func_type, "void"))
+    {
+        printf("\tret void\n");
+    }
+    else if (!strcmp(func_type, "i8*"))
+    {
+        // %1 = alloca i8*, align 8
+        // %2 = load i8*, i8** %1, align 8
+        // ret i8* %2
+        printf("\t%%%d = alloca i8*\n", var_counter++);
+        printf("\t%%%d = load i8*, i8** %%%d\n", var_counter, var_counter - 1);
+        var_counter++;
+        printf("\tret i8* %%%d\n", var_counter - 1);
+    }
+}
 void codegen_func(ast_node_t *node)
 {
     // funcdecl -> header , body
@@ -185,20 +212,21 @@ void codegen_func(ast_node_t *node)
     ast_node_t *id_node = header->fChild;
     ast_node_t *type_node = id_node->nSibling;
     ast_node_t *fParams;
+    char *func_type;
 
     var_counter = 0;
     n_label = 1;
 
     if (!strcmp(id_node->token.text, "main"))
     {
-        printf("define void @main(i32 %%argc, i8** %%argv) {\n");
+        printf("define i32 @main(i32 %%argc, i8** %%argv) {\n");
 
         current_table = find_table(header);
         var_counter++;
+        func_type = strdup("i32");
     }
     else
     {
-
         if (!strcmp(type_node->node_name, "FuncParams"))
         {
             fParams = type_node;
@@ -207,10 +235,9 @@ void codegen_func(ast_node_t *node)
         else
             fParams = type_node->nSibling;
 
-        char *func_type = llvm_var_type(type_node);
+        func_type = llvm_var_type(type_node);
 
         printf("define %s @%s(", func_type, id_node->token.text);
-        free(func_type);
 
         ast_node_t *current_node = fParams->fChild;
 
@@ -250,10 +277,9 @@ void codegen_func(ast_node_t *node)
     if (body->fChild)
         codegen(body->fChild);
 
-    if (!returned)
-    {
-        printf("ret void");
-    }
+    print_extra_return(func_type);
+    free(func_type);
+
     printf("}\n");
     returned = 0;
 
@@ -377,7 +403,7 @@ void codegen_parseargs(ast_node_t *node)
 
     table_elem_t *elem = search_table_llvm(left_child->token.text);
 
-    char *type = llvm_node_type(left_child);
+    // char *type = llvm_node_type(left_child);
 
     // if (!strcmp(right_child->node_name, "Id") && is_global(right_child->token.text))
     // {
@@ -430,7 +456,9 @@ void codegen_return(ast_node_t *node)
     {
         printf("\tret %s %%%d\n", type, child_node->llvm_name);
     }
+    free(type);
     returned = 1;
+    var_counter++;
 }
 
 void codegen_call(ast_node_t *node)
@@ -438,14 +466,14 @@ void codegen_call(ast_node_t *node)
     // type da funcao
     // type dos filhos
 
-    char *param_name;
-    char num[10];
+    // char *param_name;
+    // char num[10];
     char *type;
     ast_node_t *id_node = node->fChild;
     ast_node_t *params = id_node->nSibling;
 
     codegen(id_node);
-    int var_counter_init = var_counter;
+    // int var_counter_init = var_counter;
 
     type = llvm_node_type(node);
 
@@ -499,11 +527,22 @@ void codegen_print(ast_node_t *node)
     }
     else if (!strcmp(type, "i8*"))
     {
-        char *no_quotes = remove_double_quotes(child_node->token.text);
-        printf("\tcall i32(i8*, ...) @printf(i8* getelementptr inbounds ([%d x i8], [%d x i8]* @.str%d, i32 0, i32 0))\n", str_len_llvm(no_quotes) + 2, str_len_llvm(no_quotes) + 2, child_node->llvm_name);
-        free(no_quotes);
-        var_counter++;
+        if (!strcmp(child_node->node_name, "StrLit"))
+        {
+
+            char *no_quotes = remove_double_quotes(child_node->token.text);
+            // printf("n quotes %s len %d\n", no_quotes, str_len_llvm(no_quotes) + 2);
+            printf("\tcall i32(i8*, ...) @printf(i8* getelementptr inbounds ([%d x i8], [%d x i8]* @.str%d, i32 0, i32 0))\n", str_len_llvm(no_quotes) + 2, str_len_llvm(no_quotes) + 2, child_node->llvm_name);
+            free(no_quotes);
+            var_counter++;
+        }
+        else
+        {
+            printf("\tcall i32(i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.newline, i32 0, i32 0))\n");
+            var_counter++;
+        }
     }
+    free(type);
 }
 
 void codegen_arithmetic(ast_node_t *node)
@@ -567,7 +606,7 @@ void codegen_arithmetic(ast_node_t *node)
     {
         printf("\t%%%d = srem i32 %%%d, %%%d\n", var_counter++, left_child->llvm_name, right_child->llvm_name);
     }
-
+    free(type);
     node->llvm_name = var_counter - 1;
 }
 
@@ -586,16 +625,16 @@ void codegen_unary(ast_node_t *node)
     else if (!strcmp(node->node_name, "Minus"))
     {
         if (!strcmp(type, "i32"))
-            printf("\t%%%d = sub i32  0, %%%d", var_counter++, child_node->llvm_name);
+            printf("\t%%%d = mul i32  -1, %%%d", var_counter++, child_node->llvm_name);
         else
-            printf("\t%%%d = fsub double 0.0, %%%d", var_counter++, child_node->llvm_name);
+            printf("\t%%%d = fmul double -1.0, %%%d", var_counter++, child_node->llvm_name);
     }
     else if (!strcmp(node->node_name, "Plus"))
     {
         // nothing to do
         //! check if doesnt break
     }
-
+    free(type);
     node->llvm_name = var_counter - 1;
 }
 
@@ -659,6 +698,7 @@ void codegen_logical(ast_node_t *node)
         else
             printf("\t%%%d = icmp sgt %s %%%d, %%%d\n", var_counter++, type, left_child->llvm_name, right_child->llvm_name);
     }
+    free(type);
     node->llvm_name = var_counter - 1;
 }
 
@@ -709,6 +749,7 @@ void codegen_assign(ast_node_t *node)
     {
         printf("\tstore %s %%%d, %s* %%%d\n", type, right_child->llvm_name, type, elem->llvm_name);
     }
+    free(type);
 }
 
 void codegen_id(ast_node_t *node)
@@ -735,7 +776,9 @@ void codegen_id(ast_node_t *node)
         }
         node->llvm_name = var_counter - 1;
     }
+    free(type);
 }
+
 void codegen(ast_node_t *node)
 {
     if (!node)
@@ -757,7 +800,6 @@ void codegen(ast_node_t *node)
 
     if (!strcmp(node->node_name, "VarDecl"))
     {
-
         codegen_var(node);
     }
     if (!strcmp(node->node_name, "For"))
@@ -810,7 +852,9 @@ void codegen(ast_node_t *node)
     }
     if (!strcmp(node->node_name, "RealLit"))
     {
-        printf("\t%%%d = fadd double 0.0, %s\n", var_counter++, node->token.text);
+        char *double_str = floating_llvm(node->token.text);
+        printf("\t%%%d = fadd double 0.0, 0%s\n", var_counter++, double_str);
+        free(double_str);
         node->llvm_name = var_counter - 1;
     }
     if (!strcmp(node->node_name, "StrLit"))
@@ -821,7 +865,7 @@ void codegen(ast_node_t *node)
         codegen_id(node);
     }
 
-    if (node->nSibling && strcmp("Block", node->nSibling->node_name))
+    if (node->nSibling && strcmp("Block", node->nSibling->node_name) && strcmp(node->node_name, "Return"))
     {
         codegen(node->nSibling);
     }

@@ -123,7 +123,7 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
         return NULL;
 
     int n_vars = 0;
-    ast_node_t *current = node, *first = NULL, *type, *vars = node, *new_id;
+    ast_node_t *current = node, *first = NULL, *type, *vars = node, *new_id, *aux;
 
     while (current->nSibling != NULL)
     {
@@ -133,7 +133,14 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
 
     for (int i = 0; i < n_vars; i++)
     {
+        aux = vars;
         vars = vars->nSibling;
+        if (first != NULL)
+        {
+            free(aux->node_name);
+            free(aux);
+        }
+
         if (first == NULL)
         {
             first = create_node("VarDecl", vardecl_tok);
@@ -148,8 +155,17 @@ ast_node_t *split_vardecl(ast_node_t *node, token_t vardecl_tok)
         type->token.text = strdup(type->token.text);
         current->fChild = type;
         new_id = create_node("Id", vars->token);
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         add_siblings(current->fChild, 1, new_id);
     }
+
+    free(vars->node_name);
+    free(vars);
+
+    free(node->node_name);
+    free(node->token.text);
+    free(node);
     // printf("2\n");
 
     return first;
@@ -189,7 +205,7 @@ void print_ast_node_anottated(ast_node_t *node, int depth)
     printf("%s", node->node_name);
     if (!strcmp(node->node_name, "StrLit") || !strcmp(node->node_name, "RealLit") || !strcmp(node->node_name, "IntLit") || !strcmp(node->node_name, "Id"))
         printf("(%s)", node->token.text);
-
+    char *lower;
     if (node->is_func)
     {
         printf(" - (");
@@ -199,15 +215,21 @@ void print_ast_node_anottated(ast_node_t *node, int depth)
         {
             for (; param->next; param = param->next)
             {
-                printf("%s,", to_lower_case(param->type));
+                lower = to_lower_case(param->type);
+                printf("%s,", lower);
+                free(lower);
             }
-            printf("%s", to_lower_case(param->type));
+            lower = to_lower_case(param->type);
+            printf("%s", lower);
+            free(lower);
         }
         printf(")");
     }
     else if (node->type && strcmp(node->type, "none"))
     {
-        printf(" - %s", to_lower_case(node->type));
+        lower = to_lower_case(node->type);
+        printf(" - %s", lower);
+        free(lower);
     }
 
     printf("\n");

@@ -240,7 +240,12 @@ int insert_elem_var(int param, ast_node_t *node)
                 //! erro
                 print_symbol_already_defined(node->fChild->nSibling->token);
                 if (!param)
+                {
+                    free(new_elem->type);
+                    free(new_elem->name);
+                    free(new_elem);
                     return 1;
+                }
                 erro = 1;
             }
         }
@@ -249,11 +254,22 @@ int insert_elem_var(int param, ast_node_t *node)
             //! erro
             print_symbol_already_defined(node->fChild->nSibling->token);
             if (!param)
+            {
+                free(new_elem->type);
+                free(new_elem->name);
+                free(new_elem);
                 return 1;
+            }
             erro = 1;
         }
         if (!erro)
             aux->next = new_elem;
+        else
+        {
+            free(new_elem->type);
+            free(new_elem->name);
+            free(new_elem);
+        }
     }
     if (param)
     {
@@ -368,6 +384,8 @@ void check_symtab(ast_node_t *node)
 void print_table(table_t *table)
 {
     param_t *par;
+    char *lower;
+
     if (table->is_global)
         printf("===== Global Symbol Table =====\n");
     else
@@ -377,8 +395,14 @@ void print_table(table_t *table)
         if (par)
         {
             for (; par->next; par = par->next)
-                printf("%s,", to_lower_case(par->type));
-            printf("%s", to_lower_case(par->type));
+            {
+                lower = to_lower_case(par->type);
+                printf("%s,", lower);
+                free(lower);
+            }
+            lower = to_lower_case(par->type);
+            printf("%s", lower);
+            free(lower);
         }
         printf(") Symbol Table =====\n");
     }
@@ -394,14 +418,23 @@ void print_table(table_t *table)
             if (elem->params)
             {
                 for (par = elem->params; par->next; par = par->next)
-                    printf("%s,", to_lower_case(par->type));
+                {
 
-                printf("%s", to_lower_case(par->type));
+                    lower = to_lower_case(par->type);
+                    printf("%s,", lower);
+                    free(lower);
+                }
+                lower = to_lower_case(par->type);
+
+                printf("%s", lower);
+                free(lower);
             }
 
             printf(")");
         }
-        printf("\t%s", to_lower_case(elem->type));
+        lower = to_lower_case(elem->type);
+        printf("\t%s", lower);
+        free(lower);
         if (elem->is_param)
             printf("\tparam");
 
@@ -434,6 +467,7 @@ void print_cannot_find_symbol(token_t token)
 void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes)
 {
     // TODO: REVIEW THIS
+    char *lower;
     printf("Line %d, column %d: Cannot find symbol %s(", node->token.n_line, node->token.n_col, node->token.text);
     if (node)
     {
@@ -442,10 +476,14 @@ void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes)
         {
             for (; param->nSibling; param = param->nSibling)
             {
-                printf("%s,", to_lower_case(param->type));
+                lower = to_lower_case(param->type);
+                printf("%s,", lower);
+                free(lower);
             }
 
-            printf("%s", to_lower_case(param->type));
+            lower = to_lower_case(param->type);
+            printf("%s", lower);
+            free(lower);
         }
     }
     printf(")\n");
@@ -454,18 +492,27 @@ void print_cannot_find_symbol_func(ast_node_t *node, ast_node_t *params_nodes)
 
 void print_cannot_be_applied_to_type(token_t token, char *type)
 {
-    printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", token.n_line, token.n_col, token.text, to_lower_case(type));
+    char *lower = to_lower_case(type);
+    printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", token.n_line, token.n_col, token.text, lower);
+    free(lower);
     semantic_error = 1;
 }
 
 void print_cannot_be_applied_to_types(token_t token, char *typeA, char *typeB)
 {
-    printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", token.n_line, token.n_col, token.text, to_lower_case(typeA), to_lower_case(typeB));
+    char *lowerA = to_lower_case(typeA);
+    char *lowerB = to_lower_case(typeB);
+    printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", token.n_line, token.n_col, token.text, lowerA, lowerB);
+    free(lowerA);
+    free(lowerB);
     semantic_error = 1;
 }
 void print_incompatible_type(token_t token, token_t child_token, char *type)
 {
-    printf("Line %d, column %d: Incompatible type %s in %s statement\n", child_token.n_line, child_token.n_col, to_lower_case(type), token.text);
+    char *lower = to_lower_case(type);
+    printf("Line %d, column %d: Incompatible type %s in %s statement\n", child_token.n_line, child_token.n_col, lower, token.text);
+    free(lower);
+
     semantic_error = 1;
 }
 

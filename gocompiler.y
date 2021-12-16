@@ -58,20 +58,31 @@
 
 Program:            PACKAGE ID SEMICOLON Declarations                                           {$$=program=create_node("Program", null_token);
                                                                                                     add_children($$,1,$4);
+                                                                                                    free($1.text);
                                                                                                     free($2.text);
+                                                                                                    free($3.text);
                                                                                                 }
-            |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token); free($2.text);}
+            |       PACKAGE ID SEMICOLON                                                        {$$=program=create_node("Program", null_token); 
+                                                                                                    free($1.text);
+                                                                                                    free($2.text); 
+                                                                                                    free($3.text);
+                                                                                                }
             
             ;
             
-Declarations:       VarDeclaration SEMICOLON                                                    {$$=$1;}
-            |       FuncDeclaration SEMICOLON                                                   {$$=$1;}
-            |       Declarations VarDeclaration SEMICOLON                                       {$$=add_siblings($1,1,$2);}
-            |       Declarations FuncDeclaration SEMICOLON                                      {$$=add_siblings($1,1,$2);}
+Declarations:       VarDeclaration SEMICOLON                                                    {$$=$1; free($2.text);}
+            |       FuncDeclaration SEMICOLON                                                   {$$=$1; free($2.text);}
+            |       Declarations VarDeclaration SEMICOLON                                       {$$=add_siblings($1,1,$2); free($3.text);}
+            |       Declarations FuncDeclaration SEMICOLON                                      {$$=add_siblings($1,1,$2); free($3.text);}
             ;
             
-VarDeclaration:     VAR VarSpec                                                                 {$$=split_vardecl($2, null_token); }
-            |       VAR LPAR VarSpec SEMICOLON RPAR                                             {$$=split_vardecl($3, null_token);}
+VarDeclaration:     VAR VarSpec                                                                 {$$=split_vardecl($2, null_token); free($1.text);}
+            |       VAR LPAR VarSpec SEMICOLON RPAR                                             {$$=split_vardecl($3, null_token); 
+                                                                                                    free($1.text);
+                                                                                                    free($2.text);
+                                                                                                    free($4.text);
+                                                                                                    free($5.text);
+            }
             ;
             
 VarSpec:            ID CommaId Type                                                             {$$ = create_node("Id", $1);
@@ -81,6 +92,7 @@ VarSpec:            ID CommaId Type                                             
 
 CommaId:            COMMA ID CommaId                                                            {$$= create_node("Id", $2);
                                                                                                     $$=add_siblings($$,1,$3);
+                                                                                                    free($1.text);
                                                                                                 }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
@@ -94,36 +106,49 @@ Type:               INT                                                         
 FuncDeclaration:    FUNC ID LPAR Parameters RPAR Type FuncBody                                  {$$= create_node("FuncDecl", null_token);
                                                                                                     aux_node= create_node("FuncHeader", null_token);                                                                                                
                                                                                                     add_children(aux_node, 3, create_node("Id", $2),$6,$4);
-                                                                                                    add_children($$,2,aux_node, $7); }
+                                                                                                    add_children($$,2,aux_node, $7); 
+                                                                                                    free($1.text);
+                                                                                                    free($3.text);
+                                                                                                    free($5.text);
+                                                                                                    }
             |       FUNC ID LPAR Parameters RPAR  FuncBody                                      {$$= create_node("FuncDecl", null_token);
                                                                                                     aux_node= create_node("FuncHeader", null_token); 
                                                                                                     add_children(aux_node, 2,  create_node("Id", $2),$4);
-                                                                                                    add_children($$,2,aux_node, $6); }
+                                                                                                    add_children($$,2,aux_node, $6); 
+                                                                                                    free($1.text);
+                                                                                                    free($3.text);
+                                                                                                    free($5.text);
+                                                                                                    }
             ;
   
 Parameters:         ID Type CommaIdType                                                         {$$=create_node("FuncParams", null_token);
                                                                                                     aux_node = create_node("ParamDecl", null_token);
                                                                                                     add_children(aux_node,2,$2, create_node("Id", $1));
-                                                                                                    add_children($$,2, aux_node, $3);}
+                                                                                                    add_children($$,2, aux_node, $3);
+                                                                                                    }
             |       /*lambda*/                                                                  {$$=create_node("FuncParams", null_token);}
             ;
 
 CommaIdType:        COMMA ID Type CommaIdType                                                   {$$ = create_node("ParamDecl", null_token);
                                                                                                     add_children($$,2, $3, create_node("Id", $2));
-                                                                                                    $$=add_siblings($$, 1, $4);}
+                                                                                                    $$=add_siblings($$, 1, $4);
+                                                                                                    free($1.text);}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
 FuncBody:           LBRACE VarsAndStatements RBRACE                                             {$$ = create_node("FuncBody", null_token);
                                                                                                     add_children($$, 1, $2);
+                                                                                                    free($1.text);
+                                                                                                    free($3.text);
                                                                                                 }
             ;
   
-VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                                      {$$=add_siblings($1, 1, $3);}
+VarsAndStatements:  Statement SEMICOLON  VarsAndStatements                                      {$$=add_siblings($1, 1, $3); free($2.text);}
             |       error SEMICOLON  VarsAndStatements                                          {syntax_error = 1;   /*printf("stat1\n");*/  $$=create_node("Error",null_token); 
-                                                                                                    $$=add_siblings($$, 1, $3); }
-            |       VarDeclaration SEMICOLON VarsAndStatements                                  {$$=add_siblings($1, 1, $3);}
-            |       SEMICOLON VarsAndStatements                                                 {$$=$2;}
+                                                                                                    $$=add_siblings($$, 1, $3); 
+                                                                                                    free($2.text);}
+            |       VarDeclaration SEMICOLON VarsAndStatements                                  {$$=add_siblings($1, 1, $3); free($2.text);}
+            |       SEMICOLON VarsAndStatements                                                 {$$=$2; free($1.text);}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
@@ -137,6 +162,8 @@ Statement:          ID ASSIGN Expr                                              
                                                                                                         $$ = create_node("Block", null_token);
                                                                                                         add_children($$, 1, $2);
                                                                                                     }
+                                                                                                    free($1.text);
+                                                                                                    free($3.text);
                                                                                                 }
 
             |       IF Expr LBRACE StatementSemicolon RBRACE ELSE LBRACE StatementSemicolon RBRACE              {$$=create_node("If", $1);
@@ -145,22 +172,35 @@ Statement:          ID ASSIGN Expr                                              
                                                                                                                     aux_node2 = create_node("Block", null_token);
                                                                                                                     add_children(aux_node2, 1, $8);
                                                                                                                     add_children($$, 3, $2, aux_node, aux_node2);
+                                                                                                                    free($3.text);
+                                                                                                                    free($5.text);
+                                                                                                                    free($6.text);
+                                                                                                                    free($7.text);
+                                                                                                                    free($9.text);
                                                                                                                 }
             |       IF Expr LBRACE StatementSemicolon RBRACE                                    {$$=create_node("If", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $4);
                                                                                                     aux_node2 = create_node("Block", null_token);
-                                                                                                    add_children($$, 3, $2, aux_node, aux_node2);}
+                                                                                                    add_children($$, 3, $2, aux_node, aux_node2);
+                                                                                                    free($3.text);
+                                                                                                    free($5.text);
+                                                                                                    }
 
             |       FOR Expr LBRACE StatementSemicolon RBRACE                                   {$$=create_node("For", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $4);
                                                                                                     add_children($$, 2, $2, aux_node);
+                                                                                                    free($3.text);
+                                                                                                    free($5.text);
                                                                                                 }
             |       FOR LBRACE StatementSemicolon RBRACE                                        {$$=create_node("For", $1);
                                                                                                     aux_node = create_node("Block", null_token);
                                                                                                     add_children(aux_node, 1, $3);
                                                                                                     add_children($$, 1, aux_node);
+                                                                                                    
+                                                                                                    free($2.text);
+                                                                                                    free($4.text);
                                                                                                 }
 
             |       RETURN Expr                                                                 {$$ = create_node("Return", $1);
@@ -173,37 +213,64 @@ Statement:          ID ASSIGN Expr                                              
 
             |       PRINT LPAR Expr RPAR                                                        {$$ = create_node("Print", $1);
                                                                                                     add_children($$, 1, $3);
+                                                                                                    free($2.text);
+                                                                                                    free($4.text);
+
                                                                                                 }
             |       PRINT LPAR STRLIT RPAR                                                      {$$ = create_node("Print", $1);
                                                                                                     add_children($$, 1, create_node("StrLit", $3));
+                                                                                                    free($2.text);
+                                                                                                    free($4.text);
                                                                                                 }
 
 
 
             ;
   
-StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {$$=add_siblings($1, 1, $3); }
+StatementSemicolon: Statement SEMICOLON StatementSemicolon                                      {$$=add_siblings($1, 1, $3); free($2.text);}
             |       error SEMICOLON StatementSemicolon                                          {syntax_error = 1;   /*printf("stat2\n");*/  $$=create_node("Error",null_token); 
-                                                                                                    $$=add_siblings($$, 1, $3); }
+                                                                                                    $$=add_siblings($$, 1, $3);
+                                                                                                    free($2.text);
+                                                                                                }
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
             
 ParseArgs:          ID COMMA BLANKID ASSIGN PARSEINT LPAR CMDARGS LSQ Expr RSQ RPAR             {$$=create_node("ParseArgs", $5);
                                                                                                     add_children($$, 2, create_node("Id", $1),$9);
+                                                                                                    free($2.text);
+                                                                                                    free($3.text);
+                                                                                                    free($4.text);
+                                                                                                    free($6.text);
+                                                                                                    free($7.text);
+                                                                                                    free($8.text);
+                                                                                                    free($10.text);
+                                                                                                    free($11.text);
                                                                                                 }
-            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);free($1.text);}
+            |       ID COMMA BLANKID ASSIGN PARSEINT LPAR error RPAR                            {syntax_error = 1;  $$ = create_node("Error",null_token);
+                                                                                                    free($1.text);
+                                                                                                    free($2.text);
+                                                                                                    free($3.text);
+                                                                                                    free($4.text);
+                                                                                                    free($5.text);
+                                                                                                    free($6.text);
+                                                                                                    free($8.text);
+                                                                                                }
             ;
 
 FuncInvocation:     ID LPAR Expr CommaExpr RPAR                                                 {$$ = create_node("Call", null_token);
                                                                                                     add_children($$, 3, create_node("Id", $1), $3, $4);
+                                                                                                    free($2.text);
+                                                                                                    free($5.text);
                                                                                                 }
             |       ID LPAR RPAR                                                               {$$ = create_node("Call", null_token);
                                                                                                     add_children($$, 1, create_node("Id", $1));
+                                                                                                    free($2.text);
+                                                                                                    free($3.text);
                                                                                                 }
-            |       ID LPAR error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);free($1.text);}
+            |       ID LPAR error RPAR                                                         {syntax_error = 1;    $$ = create_node("Error",null_token);free($1.text); free($2.text); free($4.text);}
 
             ;
-CommaExpr:          COMMA Expr CommaExpr                                                        {$$=add_siblings($2,1,$3); }
+CommaExpr:          COMMA Expr CommaExpr                                                        {$$=add_siblings($2,1,$3); free($1.text);}
             |       /*lambda*/                                                                  {$$=NULL;}
             ;
 
@@ -260,11 +327,11 @@ Expr:               Expr OR  Expr                                               
                                                                                                 }
             
             |       INTLIT                                                                      {$$ = create_node("IntLit", $1);}
-            |       REALLIT                                                                     {$$= create_node("RealLit", $1);}
+            |       REALLIT                                                                     {$$ = create_node("RealLit", $1);}
             |       ID                                                                          {$$ = create_node("Id", $1);}
             |       FuncInvocation                                                              {$$=$1;}
-            |       LPAR Expr RPAR                                                              {$$=$2;}
-            |       LPAR error RPAR                                                             {syntax_error = 1;  $$ = create_node("Error",null_token);}
+            |       LPAR Expr RPAR                                                              {$$=$2; free($1.text); free($3.text);}
+            |       LPAR error RPAR                                                             {syntax_error = 1;  $$ = create_node("Error",null_token); free($1.text); free($3.text);}
             ;
 
 %%
@@ -295,7 +362,17 @@ int main(int argc, char *argv[]) {
 
     if (l_flag){
         yylex();
-    }else if(s_flag){
+    }
+    else if(t_flag){
+        if (yyparse()){         //error
+            syntax_error=1;
+        }
+        print_program(program);
+        if (program  && !lexical_error)
+            free_ast(program);
+
+    }
+    else if(s_flag){
         if (yyparse()){         //error
             syntax_error=1;
         }
@@ -312,15 +389,6 @@ int main(int argc, char *argv[]) {
         if (program  && !lexical_error){
             free_ast(program); 
         }
-    }
-    else if(t_flag){
-        if (yyparse()){         //error
-            syntax_error=1;
-        }
-        print_program(program);
-        if (program  && !lexical_error)
-            free_ast(program);
-
     }
     else{
         if (yyparse()){         //error

@@ -11,5 +11,6 @@ char *get_content(char *str);
 char *to_lower_case(char *str);
 char *remove_double_quotes(char *str);
 int str_len_llvm(char *str);
+char *floating_llvm(char *str);
 
 #endif
