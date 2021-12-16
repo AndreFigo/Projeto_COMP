@@ -13,14 +13,15 @@
 ./compile.sh
 
 
-dgos=`ls ./Comp2021.git/meta3/*.dgo`
+dgos=`ls ./Comp2021.git/meta4/*.dgo`
 suffix=".dgo"
 for ef in $dgos
 do
    echo "$ef"
    A="${ef%$suffix}.out_me"
    B="${ef%$suffix}.out"
-   ./deigo -s < $ef > $A
+   ./deigo < $ef > out.ll
+   lli-7 out.ll 100 100 100 100 100 > $A  
    diff $A $B
    if test ! -z $1 && test $1 = "-c"; then
       rm -Rf $A
