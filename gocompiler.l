@@ -119,7 +119,7 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
  /* STRLIT */
 
  /*string completa sem erros*/
-\"([^\r\n"\\]*|(\\(t|n|r|\\|\"|f)))*\"            {if (l_flag) printf("STRLIT(\"%s)\n", yytext); semicolon=1; yycolno+=yyleng; BEGIN 0; RETURN_TOKEN(STRLIT);   }
+\"([^\r\n"\\]*|(\\(t|n|r|\\|\"|f)))*\"            {if (l_flag) printf("STRLIT(%s)\n", yytext); semicolon=1; yycolno+=yyleng; BEGIN 0; RETURN_TOKEN(STRLIT);   }
 
  /*string completa sem erros*/
 \"                                                      {BEGIN STRLITERR; begcol=yycolno;yycolno++;}
@@ -169,13 +169,16 @@ type            {if (l_flag) printf("RESERVED(type)\n"); semicolon=0; yycolno+=y
 
 {newline} {
             if (semicolon){
-                if (l_flag) printf("SEMICOLON\n");
                 semicolon=0;
-
-                yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); 
-                yycolno=1;
-                yylineno++;
-                return SEMICOLON;
+                
+                if (l_flag) {
+                    printf("SEMICOLON\n");
+                } else{
+                    yylval.token = create_token(yytext, yylineno, yycolno  , SEMICOLON); 
+                    yycolno=1;
+                    yylineno++;
+                    return SEMICOLON;
+                }
                 
             };
             yylineno++;
