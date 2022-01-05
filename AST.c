@@ -43,7 +43,7 @@ void add_children(ast_node_t *parent, int n_children, ...)
             cur_child->nSibling = next_child;
             cur_child = cur_child->nSibling;
 
-            next_child = next_child->nSibling; // in case the child already has s   iblings
+            next_child = next_child->nSibling; // in case the child already has siblings
         }
     }
     va_end(args);

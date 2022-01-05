@@ -26,8 +26,6 @@ void print_global_strings(ast_node_t *node)
 void print_init(ast_node_t *node)
 {
     // print general info present in every file
-    printf("declare i32 @putchar(...)\n");
-    printf("declare i32 @getchar(...)\n");
     printf("@.strlit = private unnamed_addr constant [4 x i8] c\"%%s\\0A\\00\", align 1\n");
     printf("@.newline = private unnamed_addr constant [2 x i8] c\"\\0A\\00\", align 1\n");
     printf("@.intlit = private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1\n");
@@ -37,7 +35,7 @@ void print_init(ast_node_t *node)
     printf("declare i32 @printf(i8*, ...)\n\n");
     printf("@.strtrue = private unnamed_addr constant [6 x i8] c\"true\\0A\\00\"\n");
     printf("@.strfalse = private unnamed_addr constant [7 x i8] c\"false\\0A\\00\"\n");
-    printf("define dso_local void @print_bool(i1) #0 {\n");
+    printf("define dso_local void @.print_bool(i1) #0 {\n");
     printf("\t%%2 = alloca i1\n");
     printf("\tstore i1 %%0, i1* %%2\n");
     printf("\t%%3 = load i1, i1* %%2\n");
@@ -523,7 +521,7 @@ void codegen_print(ast_node_t *node)
     else if (!strcmp(type, "i1"))
     {
         // call void @print_bool(i1 %boo)
-        printf("\tcall void @print_bool(i1 %%%d)\n", child_node->llvm_name);
+        printf("\tcall void @.print_bool(i1 %%%d)\n", child_node->llvm_name);
     }
     else if (!strcmp(type, "i8*"))
     {
